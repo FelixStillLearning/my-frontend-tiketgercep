@@ -205,6 +205,34 @@ export const movieService = {
    */
   getMoviesWithShowtimes: async () => {
     return await apiCall(() => api.get('/movies?include=showtimes'));
+  },
+
+  // ========== NEW OPERATIONS ==========
+  
+  /**
+   * Get current movies (now showing)
+   * GET /api/movies/current
+   */
+  getCurrentMovies: async () => {
+    try {
+      const response = await api.get('/movies/current');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get upcoming movies
+   * GET /api/movies/upcoming
+   */
+  getUpcomingMovies: async () => {
+    try {
+      const response = await api.get('/movies/upcoming');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };
 

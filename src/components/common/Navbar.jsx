@@ -1,62 +1,58 @@
 // src/components/common/Navbar.jsx
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import '../../App.css';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
-    const [isActive, setIsActive] = useState(false);
-    const location = useLocation();
-
-    const toggleMenu = () => {
-        setIsActive(!isActive);
-    };
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
-        <nav className="navbar is-primary" role="navigation" aria-label="main navigation">
-            <div className="navbar-brand">
-                <Link className="navbar-item" to="/">
-                    <strong>TiketGercep</strong>
-                </Link>
-
-                <button
-                    className={`navbar-burger ${isActive ? 'is-active' : ''}`}
-                    aria-label="menu"
-                    aria-expanded="false"
-                    onClick={toggleMenu}
-                >
-                    <span aria-hidden="true"></span>
-                    <span aria-hidden="true"></span>
-                    <span aria-hidden="true"></span>
-                </button>
-            </div>
-
-            <div className={`navbar-menu ${isActive ? 'is-active' : ''}`}>
-                <div className="navbar-start">
-                    <Link 
-                        className={`navbar-item ${location.pathname === '/' ? 'is-active' : ''}`}
-                        to="/"
-                    >
-                        Home
-                    </Link>
-                    <Link 
-                        className={`navbar-item ${location.pathname === '/admin' ? 'is-active' : ''}`}
-                        to="/admin"
-                    >
-                        Admin
-                    </Link>
-                </div>
-
-                <div className="navbar-end">
-                    <div className="navbar-item">
-                        <div className="buttons">
-                            <Link className="button is-light" to="/admin">
-                                <strong>Admin Panel</strong>
-                            </Link>
+        <>
+            <nav className="navbar">
+                <div className="navbar-container">
+                    <div className="navbar-left">
+                        <Link to="/" className="navbar-brand glow-text">
+                            Ticket<span className="navbar-brand-highlight">Gercep</span>
+                        </Link>
+                        <div className="navbar-links">
+                            <Link to="/" className="navbar-link">Home</Link>
+                            <Link to="/movies" className="navbar-link">Movies</Link>
+                            <Link to="/cinemas" className="navbar-link">Cinemas</Link>
+                            <Link to="/promotions" className="navbar-link">Promotions</Link>
                         </div>
                     </div>
+                    <div className="navbar-right">
+                        <Link to="/login" className="btn btn-primary">Sign In</Link>
+                    </div>
+                    <div className="navbar-mobile-toggle">
+                        <button 
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className="btn btn-secondary navbar-toggle-btn"
+                        >
+                            <i className="fas fa-bars"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+
+            {/* Mobile Menu */}
+            {isMobileMenuOpen && (
+                <div className="mobile-menu">
+                    <button 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="btn btn-secondary mobile-menu-close"
+                    >
+                        <i className="fas fa-times"></i>
+                    </button>
+                    <div className="mobile-menu-links">
+                        <Link to="/" className="mobile-menu-link" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
+                        <Link to="/movies" className="mobile-menu-link" onClick={() => setIsMobileMenuOpen(false)}>Movies</Link>
+                        <Link to="/cinemas" className="mobile-menu-link" onClick={() => setIsMobileMenuOpen(false)}>Cinemas</Link>
+                        <Link to="/promotions" className="mobile-menu-link" onClick={() => setIsMobileMenuOpen(false)}>Promotions</Link>
+                        <Link to="/login" className="mobile-menu-link" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Link>
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
 

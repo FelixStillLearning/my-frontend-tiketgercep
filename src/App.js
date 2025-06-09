@@ -1,65 +1,63 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+
+// Common Components
 import Navbar from './components/common/Navbar';
+import Footer from './components/common/Footer';
+
+// User Pages
 import HomePage from './pages/user/HomePage';
-import AdminDashboard from './pages/admin/AdminDashboard';
+import MovieList from './pages/user/MovieList';
 import MovieDetail from './pages/user/MovieDetail';
+import BookingPage from './pages/user/BookingPage';
+import BookingHistory from './pages/user/BookingHistory';
+import UserDashboard from './pages/user/UserDashboard';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminMovies from './pages/admin/AdminMovies';
 import AdminStudios from './pages/admin/AdminStudios';
 import AdminShowtimes from './pages/admin/AdminShowtimes';
-import NotFound from './pages/common/NotFound';
-import './App.css';
+import BookingManager from './pages/admin/BookingManager';
+
+// Auth Pages
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
 
 function App() {
-  return (
-    <Router>
-      <div className="App">
-        {/* Navigation Bar */}
-        <Navbar />
-        
-        {/* Main Content Area */}
-        <main className="main-content">
-          <Routes>
-            {/* ========== PUBLIC ROUTES ========== */}
-            
-            {/* Homepage - Landing page with movie list */}
-            <Route path="/" element={<HomePage />} />
-            
-            {/* Movie Detail - Individual movie information */}
-            <Route path="/movie/:id" element={<MovieDetail />} />
-            
-            {/* ========== ADMIN ROUTES ========== */}
-            
-            {/* Admin Dashboard - Main admin page */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            
-            {/* Admin Movie Management */}
-            <Route path="/admin/movies" element={<AdminMovies />} />
-            
-            {/* Admin Studio Management */}
-            <Route path="/admin/studios" element={<AdminStudios />} />
-            
-            {/* Admin Showtime Management */}
-            <Route path="/admin/showtimes" element={<AdminShowtimes />} />
-            
-            {/* ========== REDIRECTS & ERROR HANDLING ========== */}
-            
-            {/* Redirect old admin paths */}
-            <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
-            
-            {/* 404 Not Found */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-        
-        {/* Footer */}
-        <footer className="footer">
-          <div className="content has-text-centered">
-          </div>
-        </footer>
-      </div>
-    </Router>
-  );
+    return (
+        <AuthProvider>
+            <Router>
+                <div className="flex flex-col min-h-screen">
+                    <Navbar />
+                    <main className="flex-grow">
+                        <Routes>
+                            {/* User Routes */}
+                            <Route path="/" element={<HomePage />} />
+                            <Route path="/movies" element={<MovieList />} />
+                            <Route path="/movies/:id" element={<MovieDetail />} />
+                            <Route path="/booking/:showtimeId" element={<BookingPage />} />
+                            <Route path="/bookings" element={<BookingHistory />} />
+                            <Route path="/dashboard" element={<UserDashboard />} />
+
+                            {/* Admin Routes */}
+                            <Route path="/admin" element={<AdminDashboard />} />
+                            <Route path="/admin/movies" element={<AdminMovies />} />
+                            <Route path="/admin/studios" element={<AdminStudios />} />
+                            <Route path="/admin/showtimes" element={<AdminShowtimes />} />
+                            <Route path="/admin/bookings" element={<BookingManager />} />
+
+                            {/* Auth Routes */}
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/register" element={<Register />} />
+                        </Routes>
+                    </main>
+                    <Footer />
+                </div>
+            </Router>
+        </AuthProvider>
+    );
 }
 
 export default App;

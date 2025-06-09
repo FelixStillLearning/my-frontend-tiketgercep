@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 
 import App from './App';
 import "bulma/css/bulma.min.css";
+import './styles/variables.css';
+import './styles/globals.css';
+import './styles/components.css';
+import './styles/pages.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

@@ -8,10 +8,9 @@ const api = axios.create({
     },
 });
 
-// Request interceptor
+// Request interceptor for adding auth token
 api.interceptors.request.use(
     (config) => {
-        // Get token from localStorage if it exists
         const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -23,20 +22,14 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor
+// Response interceptor for handling errors
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Handle common errors here
-        if (error.response) {
-            // Server responded with error status
-            console.error('API Error:', error.response.data);
-        } else if (error.request) {
-            // Request made but no response
-            console.error('Network Error:', error.request);
-        } else {
-            // Error in request setup
-            console.error('Request Error:', error.message);
+        if (error.response?.status === 401) {
+            // Handle unauthorized access
+            localStorage.removeItem('token');
+            window.location.href = '/login';
         }
         return Promise.reject(error);
     }

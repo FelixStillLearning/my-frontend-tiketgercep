@@ -1,70 +1,121 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import AdminNavigation from '../../components/admin/AdminNavigation';
+import AdminCard from '../../components/admin/AdminCard';
+import DataTable from '../../components/admin/DataTable';
 
 const AdminDashboard = () => {
-    const adminSections = [
+    // Mock data for demonstration
+    const stats = [
         {
-            title: 'Movies',
-            description: 'Manage movie listings, details, and schedules',
-            icon: '🎬',
-            path: '/admin/movies'
+            title: 'Total Movies',
+            value: '24',
+            icon: 'movie',
+            color: 'blue',
+            trend: 'up',
+            trendValue: '12%',
         },
         {
-            title: 'Studios',
-            description: 'Manage cinema studios and seating arrangements',
-            icon: '🎭',
-            path: '/admin/studios'
+            title: 'Total Bookings',
+            value: '1,234',
+            icon: 'ticket',
+            color: 'green',
+            trend: 'up',
+            trendValue: '8%',
         },
         {
-            title: 'Showtimes',
-            description: 'Schedule movie showtimes and manage bookings',
-            icon: '⏰',
-            path: '/admin/showtimes'
-        }
+            title: 'Total Revenue',
+            value: 'Rp 45.2M',
+            icon: 'money',
+            color: 'purple',
+            trend: 'up',
+            trendValue: '15%',
+        },
+        {
+            title: 'Active Users',
+            value: '892',
+            icon: 'users',
+            color: 'orange',
+            trend: 'down',
+            trendValue: '3%',
+        },
+    ];
+
+    const recentBookings = [
+        {
+            id: 1,
+            movie: 'The Dark Knight',
+            customer: 'John Doe',
+            seats: 'A1, A2',
+            amount: 'Rp 80,000',
+            status: 'completed',
+            date: '2024-03-15',
+        },
+        {
+            id: 2,
+            movie: 'Inception',
+            customer: 'Jane Smith',
+            seats: 'B3, B4',
+            amount: 'Rp 80,000',
+            status: 'pending',
+            date: '2024-03-15',
+        },
+        // Add more mock data as needed
+    ];
+
+    const bookingColumns = [
+        { key: 'movie', label: 'Movie' },
+        { key: 'customer', label: 'Customer' },
+        { key: 'seats', label: 'Seats' },
+        { key: 'amount', label: 'Amount' },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (item) => (
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                    item.status === 'completed' ? 'bg-green-500/20 text-green-500' :
+                    item.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
+                    'bg-red-500/20 text-red-500'
+                }`}>
+                    {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                </span>
+            ),
+        },
+        { key: 'date', label: 'Date' },
     ];
 
     return (
-        <div className="container mt-6">
-            <h1 className="title is-2 has-text-centered mb-6">Admin Dashboard</h1>
-            
-            <div className="columns is-multiline">
-                {adminSections.map((section) => (
-                    <div key={section.title} className="column is-one-third">
-                    <Link to={section.path} className="box has-text-centered" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 150 }}>
-                        <span className="icon is-large" style={{ marginBottom: 12 }}>
-                        <span className="is-size-1">{section.icon}</span>
-                        </span>
-                        <h2 className="title is-4" style={{ margin: 0 }}>{section.title}</h2>
-                        <p className="subtitle is-6" style={{ marginTop: 4 }}>{section.description}</p>
-                    </Link>
-                    </div>
-                ))}
-            </div>
+        <div className="min-h-screen bg-gray-900">
+            <div className="flex">
+                {/* Sidebar */}
+                <AdminNavigation />
 
-            <div className="columns mt-6">
-                <div className="column">
-                    <div className="box">
-                        <h3 className="title is-4">Quick Stats</h3>
-                        <div className="columns is-multiline">
-                            <div className="column is-one-third">
-                                <div className="notification is-primary">
-                                    <p className="heading">Total Movies</p>
-                                    <p className="title">0</p>
-                                </div>
-                            </div>
-                            <div className="column is-one-third">
-                                <div className="notification is-info">
-                                    <p className="heading">Active Studios</p>
-                                    <p className="title">0</p>
-                                </div>
-                            </div>
-                            <div className="column is-one-third">
-                                <div className="notification is-success">
-                                    <p className="heading">Today's Shows</p>
-                                    <p className="title">0</p>
-                                </div>
-                            </div>
-                        </div>
+                {/* Main Content */}
+                <div className="flex-1 p-8">
+                    <h1 className="text-2xl font-bold text-white mb-8">Dashboard</h1>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        {stats.map((stat, index) => (
+                            <AdminCard
+                                key={index}
+                                title={stat.title}
+                                value={stat.value}
+                                icon={stat.icon}
+                                color={stat.color}
+                                trend={stat.trend}
+                                trendValue={stat.trendValue}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Recent Bookings */}
+                    <div className="bg-gray-800 rounded-lg shadow-lg p-6">
+                        <h2 className="text-xl font-semibold text-white mb-4">Recent Bookings</h2>
+                        <DataTable
+                            columns={bookingColumns}
+                            data={recentBookings}
+                            searchable={true}
+                        />
                     </div>
                 </div>
             </div>
