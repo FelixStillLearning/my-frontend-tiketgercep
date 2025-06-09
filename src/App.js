@@ -55,11 +55,6 @@ function App() {
         {/* Footer */}
         <footer className="footer">
           <div className="content has-text-centered">
-            <p>
-              <strong>TiketGercep</strong> - Booking Tiket Bioskop Jadi Gercep! 
-              <br />
-              <small>UAS Pemrograman Web Lanjut 2025</small>
-            </p>
           </div>
         </footer>
       </div>
