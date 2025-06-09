@@ -30,13 +30,13 @@ const AdminDashboard = () => {
             <div className="columns is-multiline">
                 {adminSections.map((section) => (
                     <div key={section.title} className="column is-one-third">
-                        <Link to={section.path} className="box has-text-centered">
-                            <span className="icon is-large">
-                                <span className="is-size-1">{section.icon}</span>
-                            </span>
-                            <h2 className="title is-4 mt-4">{section.title}</h2>
-                            <p className="subtitle is-6">{section.description}</p>
-                        </Link>
+                    <Link to={section.path} className="box has-text-centered" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 150 }}>
+                        <span className="icon is-large" style={{ marginBottom: 12 }}>
+                        <span className="is-size-1">{section.icon}</span>
+                        </span>
+                        <h2 className="title is-4" style={{ margin: 0 }}>{section.title}</h2>
+                        <p className="subtitle is-6" style={{ marginTop: 4 }}>{section.description}</p>
+                    </Link>
                     </div>
                 ))}
             </div>

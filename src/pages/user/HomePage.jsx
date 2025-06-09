@@ -62,10 +62,10 @@ const HomePage = () => {
                                     />
                                 </figure>
                             </div>
-                            <div className="card-content">
-                                <p className="title is-4">{movie.title}</p>
-                                <p className="subtitle is-6">{movie.duration} minutes</p>
-                                <div className="content">
+                            <div className="card-content" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                                <p className="title is-5" style={{ marginBottom: 6, marginTop: 0 }}>{movie.title}</p>
+                                <p className="subtitle is-6" style={{ marginBottom: 8, marginTop: 0 }}>{movie.duration} minutes</p>
+                                <div className="content" style={{ marginTop: 0 }}>
                                     <p>{movie.synopsis?.substring(0, 100)}...</p>
                                 </div>
                             </div>
