@@ -195,6 +195,16 @@ export const movieService = {
       data: { successful: successful.length, failed: failed.length },
       error: failed.length > 0 ? `${failed.length} operations failed` : null
     };
+  },
+
+  // ========== ADDITIONAL OPERATIONS ==========
+  
+  /**
+   * Get movies with showtimes
+   * GET /api/movies?include=showtimes
+   */
+  getMoviesWithShowtimes: async () => {
+    return await apiCall(() => api.get('/movies?include=showtimes'));
   }
 };
 
