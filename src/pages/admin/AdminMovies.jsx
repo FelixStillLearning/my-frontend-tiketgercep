@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // Tambahkan import Link
 import { movieService } from '../../services/MovieService';
 
 const AdminMovies = () => {
@@ -29,7 +30,6 @@ const AdminMovies = () => {
         try {
             const result = await movieService.delete(id);
             if (result.success) {
-                // Refresh movie list after successful delete
                 fetchMovies();
             } else {
                 setError(result.error);
@@ -63,6 +63,11 @@ const AdminMovies = () => {
         <div className="container mt-6">
             <h1 className="title is-2">Manage Movies</h1>
             
+            {/* TAMBAHKAN: Tombol Add New Movie */}
+            <Link to="/admin/movies/create" className="button is-success mb-4">
+                Add New Movie
+            </Link>
+            
             <div className="table-container">
                 <table className="table is-fullwidth is-striped">
                     <thead>
@@ -83,10 +88,16 @@ const AdminMovies = () => {
                                 <td>{movie.status}</td>
                                 <td>
                                     <div className="buttons">
-                                        <button className="button is-small is-info">Edit</button>
+                                        {/* UBAH: Edit button jadi Link ke MovieForm */}
+                                        <Link 
+                                            to={`/admin/movies/edit/${movie.movie_id}`}
+                                            className="button is-small is-info"
+                                        >
+                                            Edit
+                                        </Link>
                                         <button 
                                             className="button is-small is-danger"
-                                            onClick={() => handleDelete(movie.id)}
+                                            onClick={() => handleDelete(movie.movie_id)}
                                         >
                                             Delete
                                         </button>
@@ -101,4 +112,4 @@ const AdminMovies = () => {
     );
 };
 
-export default AdminMovies; 
+export default AdminMovies;
