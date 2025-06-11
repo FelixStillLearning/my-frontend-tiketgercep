@@ -1,114 +1,100 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // Tambahkan import Link
-import { movieService } from '../../services/MovieService';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import DataTable from '../../components/admin/DataTable';
+import TopMovies from '../../components/admin/TopMovies';
+import RecentBookings from '../../components/admin/RecentBookings';
+import SystemStatus from '../../components/admin/SystemStatus';
 
 const AdminMovies = () => {
-    const [movies, setMovies] = useState([]);
+    // State untuk semua data dari API
+    const [allMovies, setAllMovies] = useState([]);
+    
+    // State untuk pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(6); // Atur jumlah item per halaman
+    
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
+    // Mengambil data saat komponen pertama kali dimuat
     useEffect(() => {
         fetchMovies();
     }, []);
-
+    
     const fetchMovies = async () => {
         try {
-            const result = await movieService.getAll();
-            if (result.success) {
-                setMovies(result.data);
-            } else {
-                setError(result.error);
-            }
-            setLoading(false);
-        } catch (err) {
-            setError('Failed to fetch movies');
+            setLoading(true);
+            const response = await axios.get('http://localhost:5000/api/movies');
+            setAllMovies(response.data);
+        } catch (error) {
+            console.error("Error fetching movies:", error);
+        } finally {
             setLoading(false);
         }
     };
+    
+    // Handler untuk Edit (Gaya Anda yang eksplisit)
+    const handleEdit = (movieId) => {
+        navigate(`/admin/movies/edit/${movieId}`);
+    };
 
-    const handleDelete = async (id) => {
-        try {
-            const result = await movieService.delete(id);
-            if (result.success) {
-                fetchMovies();
-            } else {
-                setError(result.error);
+    // Handler untuk Delete (Gaya Anda dengan re-fetch)
+    const handleDelete = async (movieId) => {
+        if (window.confirm("Are you sure you want to delete this movie?")) {
+            try {
+                await axios.delete(`http://localhost:5000/api/movies/${movieId}`);
+                fetchMovies(); // Refresh data dari server
+            } catch (error) {
+                console.error("Error deleting movie:", error);
+                alert('Failed to delete movie');
             }
-        } catch (err) {
-            setError('Failed to delete movie');
         }
     };
 
-    if (loading) {
-        return (
-            <div className="container mt-6">
-                <div className="has-text-centered">
-                    <p className="is-size-4">Loading movies...</p>
-                </div>
-            </div>
-        );
-    }
+    // Logika untuk memotong data sesuai halaman saat ini
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentMovies = allMovies.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(allMovies.length / itemsPerPage);
 
-    if (error) {
-        return (
-            <div className="container mt-6">
-                <div className="notification is-danger">
-                    {error}
-                </div>
-            </div>
-        );
-    }
+    const columns = [
+        { header: 'Poster', accessor: 'poster_url', cell: (url) => <img src={url} alt="poster" style={{ width: '60px', height: 'auto', borderRadius: '4px' }} /> },
+        { header: 'Title', accessor: 'title' },
+        { header: 'Genre', accessor: 'genre' },
+        { header: 'Duration', accessor: 'duration', cell: (mins) => `${mins} min` },
+        { header: 'Rating', accessor: 'rating' },
+        { header: 'Status', accessor: 'status', cell: (status) => <span className={`tag ${status === 'now_playing' ? 'is-success' : 'is-info'}`}>{status.replace('_', ' ')}</span> }
+    ];
 
     return (
-        <div className="container mt-6">
-            <h1 className="title is-2">Manage Movies</h1>
-            
-            {/* TAMBAHKAN: Tombol Add New Movie */}
-            <Link to="/admin/movies/create" className="button is-success mb-4">
-                Add New Movie
-            </Link>
-            
-            <div className="table-container">
-                <table className="table is-fullwidth is-striped">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Genre</th>
-                            <th>Duration</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {movies.map((movie) => (
-                            <tr key={movie.id}>
-                                <td>{movie.title}</td>
-                                <td>{movie.genre}</td>
-                                <td>{movie.duration} minutes</td>
-                                <td>{movie.status}</td>
-                                <td>
-                                    <div className="buttons">
-                                        {/* UBAH: Edit button jadi Link ke MovieForm */}
-                                        <Link 
-                                            to={`/admin/movies/edit/${movie.movie_id}`}
-                                            className="button is-small is-info"
-                                        >
-                                            Edit
-                                        </Link>
-                                        <button 
-                                            className="button is-small is-danger"
-                                            onClick={() => handleDelete(movie.movie_id)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+        <section className="section" style={{ backgroundColor: '#1f1f1f', minHeight: '100vh' }}>
+            <div className="container">
+                <div className="mb-6">
+                    <DataTable 
+                        title="Movie Management"
+                        columns={columns}
+                        data={currentMovies} // Kirim data yang sudah dipotong
+                        loading={loading}
+                        onAdd={() => navigate('/admin/movies/create')}
+                        onEdit={handleEdit}   // Panggil handler yang sudah dibuat
+                        onDelete={handleDelete} // Panggil handler yang sudah dibuat
+                        // Props untuk pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                        totalItems={allMovies.length}
+                        itemsPerPage={itemsPerPage}
+                    />
+                </div>
+
+                <div className="columns is-multiline">
+                    <div className="column is-one-third"><TopMovies /></div>
+                    <div className="column is-one-third"><RecentBookings /></div>
+                    <div className="column is-one-third"><SystemStatus /></div>
+                </div>
             </div>
-        </div>
+        </section>
     );
 };
 

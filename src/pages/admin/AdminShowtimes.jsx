@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import DataTable from '../../components/admin/DataTable';
 
 const AdminShowtimes = () => {
     const [showtimes, setShowtimes] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchShowtimes();
@@ -13,24 +14,29 @@ const AdminShowtimes = () => {
 
     const fetchShowtimes = async () => {
         try {
+            setLoading(true);
             const response = await axios.get('http://localhost:5000/api/showtimes');
-            console.log('Showtimes data:', response.data); // Debug
+            console.log('Showtimes data:', response.data);
             setShowtimes(response.data);
-            setLoading(false);
-        } catch (err) {
-            console.error('Error:', err);
-            setError('Failed to fetch showtimes');
+        } catch (error) {
+            console.error('Error fetching showtimes:', error);
+        } finally {
             setLoading(false);
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleEdit = (showtimeId) => {
+        navigate(`/admin/showtimes/edit/${showtimeId}`);
+    };
+
+    const handleDelete = async (showtimeId) => {
         if (window.confirm('Are you sure you want to delete this showtime?')) {
             try {
-                await axios.delete(`http://localhost:5000/api/showtimes/${id}`);
-                fetchShowtimes(); // Refresh list
-            } catch (err) {
-                setError('Failed to delete showtime');
+                await axios.delete(`http://localhost:5000/api/showtimes/${showtimeId}`);
+                fetchShowtimes(); // Refresh data
+            } catch (error) {
+                console.error('Error deleting showtime:', error);
+                alert('Failed to delete showtime');
             }
         }
     };
@@ -51,110 +57,87 @@ const AdminShowtimes = () => {
         });
     };
 
-    if (loading) {
-        return (
-            <div className="container mt-6">
-                <div className="has-text-centered">
-                    <p className="is-size-4">Loading showtimes...</p>
+    // ✅ DEFINISI KOLOM TABEL
+    const columns = [
+        { 
+            header: 'Movie', 
+            accessor: 'movie_title',
+            cell: (title) => (
+                <div>
+                    <strong className="has-text-white">{title || 'N/A'}</strong>
                 </div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="container mt-6">
-                <div className="notification is-danger">
-                    {error}
+            )
+        },
+        { 
+            header: 'Studio', 
+            accessor: 'studio_name',
+            cell: (studioName, item) => (
+                <div>
+                    <span className="tag is-info">{studioName || 'N/A'}</span>
+                    {item.total_seats && (
+                        <div>
+                            <small className="has-text-grey">
+                                Capacity: {item.total_seats} seats
+                            </small>
+                        </div>
+                    )}
                 </div>
-            </div>
-        );
-    }
+            )
+        },
+        { 
+            header: 'Date', 
+            accessor: 'show_date',
+            cell: (date) => (
+                <span className="has-text-grey-light">
+                    {date ? formatDate(date) : 'N/A'}
+                </span>
+            )
+        },
+        { 
+            header: 'Time', 
+            accessor: 'show_time',
+            cell: (time) => (
+                <span className="tag is-light">
+                    {time || 'N/A'}
+                </span>
+            )
+        },
+        { 
+            header: 'Price', 
+            accessor: 'price',
+            cell: (price) => (
+                <span className="has-text-success">
+                    {price ? formatPrice(price) : 'N/A'}
+                </span>
+            )
+        },
+        { 
+            header: 'Available Seats', 
+            accessor: 'total_seats',
+            cell: (seats) => (
+                <span className="tag is-success">
+                    {seats || 0} seats
+                </span>
+            )
+        }
+    ];
 
     return (
-        <div className="container mt-6">
-            <h1 className="title is-2">Manage Showtimes</h1>
-            
-            <Link to="/admin/showtimes/create" className="button is-success mb-4">
-                Add New Showtime
-            </Link>
-            
-            <div className="table-container">
-                <table className="table is-fullwidth is-striped">
-                    <thead>
-                        <tr>
-                            <th>Movie</th>
-                            <th>Studio</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Price</th>
-                            <th>Available Seats</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {showtimes.map((showtime) => (
-                            <tr key={showtime.showtime_id}>
-                                <td>
-                                    <strong>{showtime.movie_title || showtime.title || 'N/A'}</strong>
-                                </td>
-                                <td>
-                                    <span className="tag is-info">
-                                        {showtime.studio_name || 'N/A'}
-                                    </span>
-                                    {showtime.total_seats && (
-                                        <>
-                                            <br />
-                                            <small className="has-text-grey">
-                                                Capacity: {showtime.total_seats} seats
-                                            </small>
-                                        </>
-                                    )}
-                                </td>
-                                <td>
-                                    {showtime.show_date ? formatDate(showtime.show_date) : 'N/A'}
-                                </td>
-                                <td>
-                                    <span className="tag is-light">
-                                        {showtime.show_time || 'N/A'}
-                                    </span>
-                                </td>
-                                <td>
-                                    {showtime.price ? formatPrice(showtime.price) : 'N/A'}
-                                </td>
-                                <td>
-                                    <span className="tag is-success">
-                                        {showtime.total_seats || 0} seats
-                                    </span>
-                                </td>
-                                <td>
-                                    <div className="buttons">
-                                        <Link 
-                                            to={`/admin/showtimes/edit/${showtime.showtime_id}`}
-                                            className="button is-small is-info"
-                                        >
-                                            Edit
-                                        </Link>
-                                        <button 
-                                            className="button is-small is-danger"
-                                            onClick={() => handleDelete(showtime.showtime_id)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {showtimes.length === 0 && (
-                <div className="notification is-info">
-                    No showtimes found. <Link to="/admin/showtimes/create">Create your first showtime</Link>
+        <section className="section" style={{ backgroundColor: '#1f1f1f', minHeight: '100vh' }}>
+            <div className="container">
+                <div className="mb-6">
+                    <DataTable 
+                        title="Showtime Management"
+                        columns={columns}
+                        data={showtimes}
+                        loading={loading}
+                        onAdd={() => navigate('/admin/showtimes/create')}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                    />
                 </div>
-            )}
-        </div>
+            </div>
+        </section>
     );
 };
 

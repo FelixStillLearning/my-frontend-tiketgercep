@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios'; // Gunakan axios langsung karena studioService mungkin tidak sesuai
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import DataTable from '../../components/admin/DataTable';
 
 const AdminStudios = () => {
     const [studios, setStudios] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchStudios();
@@ -13,124 +14,77 @@ const AdminStudios = () => {
 
     const fetchStudios = async () => {
         try {
+            setLoading(true);
             const response = await axios.get('http://localhost:5000/api/studios');
-            console.log('Studio data:', response.data); // Debug
+            console.log('Studio data:', response.data);
             setStudios(response.data);
-            setLoading(false);
-        } catch (err) {
-            console.error('Error:', err);
-            setError('Failed to fetch studios');
+        } catch (error) {
+            console.error('Error fetching studios:', error);
+        } finally {
             setLoading(false);
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleEdit = (studioId) => {
+        navigate(`/admin/studios/edit/${studioId}`);
+    };
+
+    const handleDelete = async (studioId) => {
         if (window.confirm('Are you sure you want to delete this studio?')) {
             try {
-                await axios.delete(`http://localhost:5000/api/studios/${id}`);
-                fetchStudios(); // Refresh list
-            } catch (err) {
-                setError('Failed to delete studio');
+                await axios.delete(`http://localhost:5000/api/studios/${studioId}`);
+                fetchStudios(); // Refresh data
+            } catch (error) {
+                console.error('Error deleting studio:', error);
+                alert('Failed to delete studio');
             }
         }
     };
 
-    if (loading) {
-        return (
-            <div className="container mt-6">
-                <div className="has-text-centered">
-                    <p className="is-size-4">Loading studios...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="container mt-6">
-                <div className="notification is-danger">
-                    {error}
-                </div>
-            </div>
-        );
-    }
+    // ✅ DEFINISI KOLOM TABEL
+    const columns = [
+        { header: 'Studio Name', accessor: 'studio_name' },
+        { 
+            header: 'Total Seats', 
+            accessor: 'total_seats',
+            cell: (seats) => <span className="tag is-info">{seats} seats</span>
+        },
+        { 
+            header: 'Layout', 
+            accessor: 'rows',
+            cell: (rows, item) => (
+                item.rows && item.seats_per_row ? (
+                    <span className="has-text-grey-light">
+                        {item.rows} rows × {item.seats_per_row} seats
+                    </span>
+                ) : (
+                    <span className="has-text-grey">No layout info</span>
+                )
+            )
+        },
+        { 
+            header: 'Created', 
+            accessor: 'created_at',
+            cell: (date) => date ? new Date(date).toLocaleDateString('id-ID') : 'N/A'
+        }
+    ];
 
     return (
-        <div className="container mt-6">
-            <h1 className="title is-2">Manage Studios</h1>
-            
-            {/* Tombol Add New Studio */}
-            <Link to="/admin/studios/create" className="button is-success mb-4">
-                Add New Studio
-            </Link>
-            
-            <div className="table-container">
-                <table className="table is-fullwidth is-striped">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Studio Name</th>
-                            <th>Total Seats</th>
-                            <th>Layout</th>
-                            <th>Created At</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {studios.map((studio, index) => (
-                            <tr key={studio.studio_id}>
-                                <td>{index + 1}</td>
-                                <td>
-                                    <strong>{studio.studio_name || 'N/A'}</strong>
-                                </td>
-                                <td>
-                                    <span className="tag is-info">
-                                        {studio.total_seats || 0} seats
-                                    </span>
-                                </td>
-                                <td>
-                                    {studio.rows && studio.seats_per_row ? (
-                                        <span className="has-text-grey">
-                                            {studio.rows} rows × {studio.seats_per_row} seats
-                                        </span>
-                                    ) : (
-                                        <span className="has-text-grey">No layout info</span>
-                                    )}
-                                </td>
-                                <td>
-                                    {studio.created_at ? 
-                                        new Date(studio.created_at).toLocaleDateString('id-ID') : 
-                                        'N/A'
-                                    }
-                                </td>
-                                <td>
-                                    <div className="buttons">
-                                        <Link 
-                                            to={`/admin/studios/edit/${studio.studio_id}`}
-                                            className="button is-small is-info"
-                                        >
-                                            Edit
-                                        </Link>
-                                        <button 
-                                            className="button is-small is-danger"
-                                            onClick={() => handleDelete(studio.studio_id)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {studios.length === 0 && (
-                <div className="notification is-info">
-                    No studios found. <Link to="/admin/studios/create">Create your first studio</Link>
+        <section className="section" style={{ backgroundColor: '#1f1f1f', minHeight: '100vh' }}>
+            <div className="container">
+                <div className="mb-6">
+                    <DataTable 
+                        title="Studio Management"
+                        columns={columns}
+                        data={studios}
+                        loading={loading}
+                        onAdd={() => navigate('/admin/studios/create')}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                    />
                 </div>
-            )}
-        </div>
+            </div>
+        </section>
     );
 };
 
