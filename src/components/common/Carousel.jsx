@@ -34,7 +34,7 @@ const Carousel = ({ items, autoRotate = true, interval = 7000 }) => {
                         className={`carousel-item${index === currentIndex ? ' active' : ''}`}
                     >
                         <img
-                            src={item.posterUrl}
+                            src={item.poster_path}
                             alt={item.title}
                             className="carousel-image"
                         />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -21,8 +21,7 @@ const Login = () => {
         setError('');
 
         try {
-            // TODO: Replace with actual API call
-            // This is a mock login for demonstration
+            // Mock login for demonstration
             const mockUser = {
                 email: formData.email,
                 role: formData.email.includes('admin') ? 'admin' : 'user'
@@ -38,12 +37,12 @@ const Login = () => {
                 navigate('/');
             }
         } catch (err) {
-            setError('Invalid email or password');
+            setError('Login failed. Please try again.');
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 relative">
+        <div className="min-h-screen flex items-center justify-center p-4 relative bg-gray-900">
             {/* Blurred cinema lights background */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-gray-900 to-black opacity-90"></div>
@@ -59,7 +58,7 @@ const Login = () => {
                     </div>
                     
                     {error && (
-                        <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 text-sm">
+                        <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-6">
                             {error}
                         </div>
                     )}
@@ -90,7 +89,7 @@ const Login = () => {
                                 required
                             />
                             <div className="flex justify-end mt-2">
-                                <a href="#" className="text-sm text-indigo-400 hover:text-indigo-300">Forgot Password?</a>
+                                <a href="#forgot" className="text-sm text-indigo-400 hover:text-indigo-300">Forgot Password?</a>
                             </div>
                         </div>
                         
@@ -103,18 +102,33 @@ const Login = () => {
                         
                         <div className="text-center text-gray-400 text-sm">
                             Don't have an account? 
-                            <a href="#" className="text-amber-400 hover:text-amber-300 font-medium">Sign up</a>
+                            <Link to="/register" className="text-amber-400 hover:text-amber-300 font-medium ml-1">Sign up</Link>
                         </div>
                     </form>
+                    
+                    {/* Demo credentials */}
+                    <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
+                        <p className="text-xs text-gray-400 mb-2">Demo credentials:</p>
+                        <p className="text-xs text-gray-300">Admin: admin@tiketgercep.com / admin123</p>
+                        <p className="text-xs text-gray-300">User: user@tiketgercep.com / user123</p>
+                    </div>
                 </div>
                 
                 <div className="px-8 py-4 bg-gray-800/50 border-t border-gray-700/50 text-center">
                     <p className="text-xs text-gray-500">
-                        By continuing, you agree to our <a href="#" className="text-gray-400 hover:underline">Terms of Service</a> and <a href="#" className="text-gray-400 hover:underline">Privacy Policy</a>.
+                        By continuing, you agree to our <a href="#terms" className="text-gray-400 hover:underline">Terms of Service</a> and <a href="#privacy" className="text-gray-400 hover:underline">Privacy Policy</a>.
                     </p>
                 </div>
             </div>
-        </div>
+            
+            {/* Back to Home */}
+            <Link 
+                to="/"
+                className="absolute top-4 left-4 text-gray-400 hover:text-white flex items-center z-20"
+            >
+                <i className="fas fa-arrow-left mr-2"></i>
+                Back to Home
+            </Link>        </div>
     );
 };
 

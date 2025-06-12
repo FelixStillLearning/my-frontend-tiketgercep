@@ -39,17 +39,13 @@ const Modal = ({
             case 'full': return 'modal-full';
             default: return '';
         }
-    };
-
-    return (
+    };    return (
         <div className="modal-overlay">
             {/* Backdrop */}
             <div
                 className="modal-backdrop"
                 onClick={onClose}
-            />
-
-            {/* Modal */}
+            />            {/* Modal */}
             <div className="modal-wrapper">
                 <div
                     className={`modal ${getSizeClass(size)} ${className}`}

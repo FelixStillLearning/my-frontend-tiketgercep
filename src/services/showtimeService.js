@@ -1,5 +1,5 @@
 // src/services/showtimeService.js
-// TODO: Implement Showtime API calls
+// Showtime API calls implementation
 
 import api from './api';
 
@@ -8,6 +8,16 @@ const showtimeService = {
   getAllShowtimes: async () => {
     try {
       const response = await api.get('/showtimes');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
+  // Get showtimes by movie ID
+  getByMovieId: async (movieId) => {
+    try {
+      const response = await api.get(`/showtimes?movie_id=${movieId}`);
       return response.data;
     } catch (error) {
       throw error;

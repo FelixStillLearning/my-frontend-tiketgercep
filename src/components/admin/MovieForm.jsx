@@ -4,18 +4,16 @@ const MovieForm = ({
     initialData = null,
     onSubmit,
     onCancel,
-}) => {
-    const [formData, setFormData] = useState({
+}) => {    const [formData, setFormData] = useState({
         title: '',
-        description: '',
+        synopsis: '',
         duration: '',
         genre: '',
-        releaseDate: '',
-        posterUrl: '',
-        status: 'upcoming',
+        release_date: '',
+        poster_url: '',
+        trailer_url: '',
+        status: 'coming_soon',
         rating: '',
-        director: '',
-        cast: '',
     });
 
     useEffect(() => {
@@ -35,13 +33,11 @@ const MovieForm = ({
     const handleSubmit = (e) => {
         e.preventDefault();
         onSubmit(formData);
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="form-group-spacing">
-            <div className="form-grid">
-                <div className="form-group">
-                    <label className="form-label">
+    };    return (
+        <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
                         Title
                     </label>
                     <input
@@ -50,12 +46,12 @@ const MovieForm = ({
                         value={formData.title}
                         onChange={handleChange}
                         required
-                        className="form-input"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
 
-                <div className="form-group">
-                    <label className="form-label">
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
                         Genre
                     </label>
                     <input
@@ -64,12 +60,12 @@ const MovieForm = ({
                         value={formData.genre}
                         onChange={handleChange}
                         required
-                        className="form-input"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
 
-                <div className="form-group">
-                    <label className="form-label">
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
                         Duration (minutes)
                     </label>
                     <input
@@ -78,55 +74,23 @@ const MovieForm = ({
                         value={formData.duration}
                         onChange={handleChange}
                         required
-                        className="form-input"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
-                </div>
-
-                <div className="form-group">
-                    <label className="form-label">
+                </div>                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
                         Release Date
                     </label>
                     <input
                         type="date"
-                        name="releaseDate"
-                        value={formData.releaseDate}
+                        name="release_date"
+                        value={formData.release_date}
                         onChange={handleChange}
                         required
-                        className="form-input"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
-                </div>
-
-                <div className="form-group">
-                    <label className="form-label">
-                        Director
-                    </label>
-                    <input
-                        type="text"
-                        name="director"
-                        value={formData.director}
-                        onChange={handleChange}
-                        required
-                        className="form-input"
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label className="form-label">
-                        Cast
-                    </label>
-                    <input
-                        type="text"
-                        name="cast"
-                        value={formData.cast}
-                        onChange={handleChange}
-                        required
-                        className="form-input"
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label className="form-label">
-                        Rating
+                </div>                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Rating (0-5)
                     </label>
                     <input
                         type="number"
@@ -137,12 +101,12 @@ const MovieForm = ({
                         min="0"
                         max="5"
                         required
-                        className="form-input"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
 
-                <div className="form-group">
-                    <label className="form-label">
+                <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
                         Status
                     </label>
                     <select
@@ -150,54 +114,63 @@ const MovieForm = ({
                         value={formData.status}
                         onChange={handleChange}
                         required
-                        className="form-input"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
-                        <option value="upcoming">Upcoming</option>
+                        <option value="coming_soon">Coming Soon</option>
                         <option value="now_playing">Now Playing</option>
                         <option value="ended">Ended</option>
                     </select>
                 </div>
-            </div>
-
-            <div className="form-group">
-                <label className="form-label">
-                    Description
+            </div>            <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                    Synopsis
                 </label>
                 <textarea
-                    name="description"
-                    value={formData.description}
+                    name="synopsis"
+                    value={formData.synopsis}
                     onChange={handleChange}
                     rows="4"
                     required
-                    className="form-input"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 ></textarea>
-            </div>
-
-            <div className="form-group">
-                <label className="form-label">
+            </div>            <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
                     Poster URL
                 </label>
                 <input
                     type="url"
-                    name="posterUrl"
-                    value={formData.posterUrl}
+                    name="poster_url"
+                    value={formData.poster_url}
                     onChange={handleChange}
                     required
-                    className="form-input"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
             </div>
 
-            <div className="form-actions">
+            <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                    Trailer URL
+                </label>
+                <input
+                    type="url"
+                    name="trailer_url"
+                    value={formData.trailer_url}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+            </div>
+
+            <div className="flex justify-end space-x-4 pt-4">
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="btn btn-secondary"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
-                    className="btn btn-primary"
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                     {initialData ? 'Update Movie' : 'Add Movie'}
                 </button>

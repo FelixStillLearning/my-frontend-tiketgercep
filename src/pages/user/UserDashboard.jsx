@@ -1,5 +1,5 @@
 // src/pages/user/UserDashboard.jsx
-// TODO: Implement user main page
+// Implementation of user dashboard page using real API data
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import Navbar from '../../components/common/Navbar';
 import Footer from '../../components/common/Footer';
 import bookingService from '../../services/bookingService';
+import { movieService } from '../../services/MovieService';
+import showtimeService from '../../services/showtimeService';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -28,13 +30,42 @@ const UserDashboard = () => {
     if (!user) {
       navigate('/login');
       return;
-    }
-
-    const fetchData = async () => {
+    }    const fetchData = async () => {
       try {
         setLoading(true);
-        const bookings = await bookingService.getUserBookings(user.id);
-        setRecentBookings(bookings.slice(0, 3)); // Get only 3 most recent bookings
+        
+        // Get user's recent bookings
+        const bookingsData = await bookingService.getUserBookings(user.user_id);
+        
+        // Enrich booking data with movie information
+        const enrichedBookings = await Promise.all(
+          bookingsData.slice(0, 3).map(async (booking) => {
+            try {
+              const showtime = await showtimeService.getShowtimeById(booking.showtime_id);
+              const movie = await movieService.getById(showtime.movie_id);
+              
+              return {
+                ...booking,
+                movie: {
+                  title: movie.title
+                },
+                showtime: {
+                  date: showtime.show_date,
+                  time: showtime.show_time
+                }
+              };
+            } catch (err) {
+              console.warn('Error fetching booking details:', err);
+              return {
+                ...booking,
+                movie: { title: 'Unknown Movie' },
+                showtime: { date: 'Unknown', time: 'Unknown' }
+              };
+            }
+          })
+        );
+        
+        setRecentBookings(enrichedBookings);
         setFormData(prev => ({
           ...prev,
           name: user.name || '',
@@ -42,8 +73,8 @@ const UserDashboard = () => {
           phone: user.phone || ''
         }));
       } catch (err) {
+        console.error('Error fetching user data:', err);
         setError('Failed to load user data');
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -105,24 +136,22 @@ const UserDashboard = () => {
       setError(err.response?.data?.message || 'Failed to update password');
     }
   };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-gray-900">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          <div className="text-center">Loading...</div>
+          <div className="text-center text-gray-400">Loading...</div>
         </div>
         <Footer />
       </div>
     );
   }
-
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-900">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">User Dashboard</h1>
+        <h1 className="text-3xl font-bold text-white mb-8">User Dashboard</h1>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">

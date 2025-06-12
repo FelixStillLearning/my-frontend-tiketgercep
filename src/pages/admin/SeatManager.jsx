@@ -1,157 +1,152 @@
 import React, { useState, useEffect } from 'react';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import ShowtimeForm from '../../components/admin/ShowtimeForm';
+import SeatForm from '../../components/admin/SeatForm';
 import FormWrapper from '../../components/common/FormWrapper';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
-import showtimeService from '../../services/showtimeService';
-import { movieService } from '../../services/MovieService';
+import seatService from '../../services/seatService';
 import studioService from '../../services/studioService';
 
-const ShowtimeManager = () => {    const [showtimes, setShowtimes] = useState([]);
-    const [movies, setMovies] = useState([]);
+const SeatManager = () => {
+    const [seats, setSeats] = useState([]);
     const [studios, setStudios] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
-    const [editingShowtime, setEditingShowtime] = useState(null);
+    const [editingSeat, setEditingSeat] = useState(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    const [showtimeToDelete, setShowtimeToDelete] = useState(null);
+    const [seatToDelete, setSeatToDelete] = useState(null);
 
+    // Mock data - replace with API calls later
     useEffect(() => {
-        fetchData();
-    }, []);    const fetchData = async () => {
+        fetchSeats();
+        fetchStudios();
+    }, []);    const fetchSeats = async () => {
         setLoading(true);
         try {
-            const [showtimesRes, moviesRes, studiosRes] = await Promise.all([
-                showtimeService.getAll(),
-                movieService.getAll(),
-                studioService.getAll()
-            ]);
-            
-            setShowtimes(showtimesRes.data || []);
-            setMovies(moviesRes.data || []);
-            setStudios(studiosRes.data || []);
+            const response = await seatService.getAll();
+            setSeats(response.data || []);
         } catch (error) {
-            console.error('Error fetching data:', error);
+            console.error('Error fetching seats:', error);
             // Fallback to mock data if API fails
-            const mockMovies = [
-                { movie_id: 1, title: 'Avengers: Endgame' },
-                { movie_id: 2, title: 'Spider-Man: No Way Home' }
-            ];
-            
-            const mockStudios = [
-                { studio_id: 1, studio_name: 'Studio A' },
-                { studio_id: 2, studio_name: 'Studio B' }
-            ];
-            
-            const mockShowtimes = [
+            const mockSeats = [
                 {
-                    showtime_id: 1,
-                    movie_id: 1,
+                    seat_id: 1,
                     studio_id: 1,
-                    show_date: '2024-06-15',
-                    show_time: '19:30:00',
-                    ticket_price: 50000,
-                    Movie: { title: 'Avengers: Endgame' },
+                    seat_row: 'A',
+                    seat_number: 1,
+                    seat_label: 'A1',
                     Studio: { studio_name: 'Studio A' },
                     created_at: '2024-01-01T00:00:00Z'
                 },
                 {
-                    showtime_id: 2,
-                    movie_id: 2,
+                    seat_id: 2,
+                    studio_id: 1,
+                    seat_row: 'A',
+                    seat_number: 2,
+                    seat_label: 'A2',
+                    Studio: { studio_name: 'Studio A' },
+                    created_at: '2024-01-01T00:00:00Z'
+                },
+                {
+                    seat_id: 3,
                     studio_id: 2,
-                    show_date: '2024-06-15',
-                    show_time: '21:00:00',
-                    ticket_price: 55000,
-                    Movie: { title: 'Spider-Man: No Way Home' },
+                    seat_row: 'B',
+                    seat_number: 1,
+                    seat_label: 'B1',
                     Studio: { studio_name: 'Studio B' },
                     created_at: '2024-01-01T00:00:00Z'
                 }
             ];
-            
-            setMovies(mockMovies);
-            setStudios(mockStudios);
-            setShowtimes(mockShowtimes);
+            setSeats(mockSeats);
         } finally {
             setLoading(false);
         }
     };
 
+    const fetchStudios = async () => {
+        try {
+            const response = await studioService.getAll();
+            setStudios(response.data || []);
+        } catch (error) {
+            console.error('Error fetching studios:', error);
+            // Fallback to mock data if API fails
+            const mockStudios = [
+                { studio_id: 1, studio_name: 'Studio A' },
+                { studio_id: 2, studio_name: 'Studio B' }
+            ];
+            setStudios(mockStudios);
+        }
+    };
+
     const handleAdd = () => {
-        setEditingShowtime(null);
+        setEditingSeat(null);
         setShowForm(true);
     };
 
-    const handleEdit = (showtime) => {
-        setEditingShowtime(showtime);
+    const handleEdit = (seat) => {
+        setEditingSeat(seat);
         setShowForm(true);
     };
 
-    const handleDelete = (showtime) => {
-        setShowtimeToDelete(showtime);
+    const handleDelete = (seat) => {
+        setSeatToDelete(seat);
         setShowDeleteDialog(true);
     };    const handleFormSubmit = async (formData) => {
         try {
-            if (editingShowtime) {
-                await showtimeService.update(editingShowtime.showtime_id, formData);
-                console.log('Showtime updated successfully');
-                setShowtimes(showtimes.map(showtime => 
-                    showtime.showtime_id === editingShowtime.showtime_id 
-                        ? { 
-                            ...showtime, 
-                            ...formData,
-                            Movie: movies.find(m => m.movie_id === formData.movie_id),
-                            Studio: studios.find(s => s.studio_id === formData.studio_id)
-                        }
-                        : showtime
+            if (editingSeat) {
+                await seatService.update(editingSeat.seat_id, formData);
+                console.log('Seat updated successfully');
+                setSeats(seats.map(seat => 
+                    seat.seat_id === editingSeat.seat_id 
+                        ? { ...seat, ...formData, Studio: studios.find(s => s.studio_id === formData.studio_id) }
+                        : seat
                 ));
             } else {
-                const response = await showtimeService.create(formData);
-                console.log('Showtime created successfully');
-                const newShowtime = {
+                const response = await seatService.create(formData);
+                console.log('Seat created successfully');
+                const newSeat = {
                     ...formData,
-                    showtime_id: response.data?.showtime_id || Date.now(),
-                    Movie: movies.find(m => m.movie_id === formData.movie_id),
+                    seat_id: response.data?.seat_id || Date.now(),
                     Studio: studios.find(s => s.studio_id === formData.studio_id),
                     created_at: new Date().toISOString()
                 };
-                setShowtimes([...showtimes, newShowtime]);
+                setSeats([...seats, newSeat]);
             }
             setShowForm(false);
-            setEditingShowtime(null);
+            setEditingSeat(null);
         } catch (error) {
-            console.error('Error saving showtime:', error);
-            alert('Error saving showtime. Please try again.');
+            console.error('Error saving seat:', error);
+            alert('Error saving seat. Please try again.');
         }
     };
 
     const handleConfirmDelete = async () => {
         try {
-            await showtimeService.delete(showtimeToDelete.showtime_id);
-            console.log('Showtime deleted successfully');
-            setShowtimes(showtimes.filter(showtime => showtime.showtime_id !== showtimeToDelete.showtime_id));
+            await seatService.delete(seatToDelete.seat_id);
+            console.log('Seat deleted successfully');
+            setSeats(seats.filter(seat => seat.seat_id !== seatToDelete.seat_id));
             setShowDeleteDialog(false);
-            setShowtimeToDelete(null);
+            setSeatToDelete(null);
         } catch (error) {
-            console.error('Error deleting showtime:', error);
-            alert('Error deleting showtime. Please try again.');
+            console.error('Error deleting seat:', error);
+            alert('Error deleting seat. Please try again.');
         }
     };
 
     const handleCancelForm = () => {
         setShowForm(false);
-        setEditingShowtime(null);
+        setEditingSeat(null);
     };
 
     const handleCancelDelete = () => {
         setShowDeleteDialog(false);
-        setShowtimeToDelete(null);
+        setSeatToDelete(null);
     };    return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="sm:flex sm:items-center">
                 <div className="sm:flex-auto">
-                    <h1 className="text-2xl font-semibold text-gray-900">Showtime Management</h1>
+                    <h1 className="text-2xl font-semibold text-gray-900">Seat Management</h1>
                     <p className="mt-2 text-sm text-gray-700">
-                        Manage movie showtimes and scheduling.
+                        Manage individual seats in cinema studios.
                     </p>
                 </div>
                 <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
@@ -161,7 +156,7 @@ const ShowtimeManager = () => {    const [showtimes, setShowtimes] = useState([]
                         className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
                     >
                         <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-                        Add Showtime
+                        Add Seat
                     </button>
                 </div>
             </div>
@@ -179,19 +174,19 @@ const ShowtimeManager = () => {    const [showtimes, setShowtimes] = useState([]
                                     <thead className="bg-gray-50">
                                         <tr>
                                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Movie
+                                                Seat Label
                                             </th>
                                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Studio
                                             </th>
                                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Date
+                                                Row
                                             </th>
                                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Time
+                                                Number
                                             </th>
                                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Price
+                                                Created At
                                             </th>
                                             <th scope="col" className="relative px-6 py-3">
                                                 <span className="sr-only">Actions</span>
@@ -199,36 +194,36 @@ const ShowtimeManager = () => {    const [showtimes, setShowtimes] = useState([]
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {showtimes.map((showtime) => (
-                                            <tr key={showtime.showtime_id} className="hover:bg-gray-50">
+                                        {seats.map((seat) => (
+                                            <tr key={seat.seat_id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    {showtime.Movie?.title}
+                                                    {seat.seat_label}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {showtime.Studio?.studio_name}
+                                                    {seat.Studio?.studio_name}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {new Date(showtime.show_date).toLocaleDateString()}
+                                                    {seat.seat_row}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {showtime.show_time}
+                                                    {seat.seat_number}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    IDR {parseInt(showtime.ticket_price).toLocaleString()}
+                                                    {new Date(seat.created_at).toLocaleDateString()}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex justify-end space-x-2">
                                                         <button
-                                                            onClick={() => handleEdit(showtime)}
+                                                            onClick={() => handleEdit(seat)}
                                                             className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                                                            title="Edit Showtime"
+                                                            title="Edit Seat"
                                                         >
                                                             <PencilIcon className="h-4 w-4" />
                                                         </button>
                                                         <button
-                                                            onClick={() => handleDelete(showtime)}
+                                                            onClick={() => handleDelete(seat)}
                                                             className="text-red-600 hover:text-red-900 p-1 rounded"
-                                                            title="Delete Showtime"
+                                                            title="Delete Seat"
                                                         >
                                                             <TrashIcon className="h-4 w-4" />
                                                         </button>
@@ -238,9 +233,9 @@ const ShowtimeManager = () => {    const [showtimes, setShowtimes] = useState([]
                                         ))}
                                     </tbody>
                                 </table>
-                                {showtimes.length === 0 && (
+                                {seats.length === 0 && (
                                     <div className="text-center py-12">
-                                        <p className="text-sm text-gray-500">No showtimes found. Add your first showtime to get started.</p>
+                                        <p className="text-sm text-gray-500">No seats found. Add your first seat to get started.</p>
                                     </div>
                                 )}
                             </div>
@@ -249,15 +244,14 @@ const ShowtimeManager = () => {    const [showtimes, setShowtimes] = useState([]
                 </div>
             )}
 
-            {/* Showtime Form Modal */}
+            {/* Seat Form Modal */}
             {showForm && (
                 <FormWrapper
-                    title={editingShowtime ? 'Edit Showtime' : 'Add New Showtime'}
+                    title={editingSeat ? 'Edit Seat' : 'Add New Seat'}
                     onClose={handleCancelForm}
                 >
-                    <ShowtimeForm
-                        initialData={editingShowtime}
-                        movies={movies}
+                    <SeatForm
+                        initialData={editingSeat}
                         studios={studios}
                         onSubmit={handleFormSubmit}
                         onCancel={handleCancelForm}
@@ -268,8 +262,8 @@ const ShowtimeManager = () => {    const [showtimes, setShowtimes] = useState([]
             {/* Delete Confirmation Dialog */}
             {showDeleteDialog && (
                 <ConfirmDialog
-                    title="Delete Showtime"
-                    message={`Are you sure you want to delete this showtime? This action cannot be undone.`}
+                    title="Delete Seat"
+                    message={`Are you sure you want to delete seat "${seatToDelete?.seat_label}"? This action cannot be undone.`}
                     confirmText="Delete"
                     cancelText="Cancel"
                     onConfirm={handleConfirmDelete}
@@ -281,4 +275,4 @@ const ShowtimeManager = () => {    const [showtimes, setShowtimes] = useState([]
     );
 };
 
-export default ShowtimeManager;
+export default SeatManager;

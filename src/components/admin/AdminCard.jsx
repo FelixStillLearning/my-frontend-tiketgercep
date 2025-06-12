@@ -9,54 +9,75 @@ const AdminCard = ({
     trendValue,
     className = '',
 }) => {
-    const getColorClass = (baseColor) => {
+    const getColorClasses = (baseColor) => {
         switch (baseColor) {
-            case 'indigo': return 'admin-card-icon-indigo';
-            case 'green': return 'admin-card-icon-green';
-            case 'red': return 'admin-card-icon-red';
-            case 'amber': return 'admin-card-icon-amber';
-            case 'purple': return 'admin-card-icon-purple';
-            default: return '';
+            case 'blue':
+                return 'bg-blue-600 text-blue-100';
+            case 'green':
+                return 'bg-green-600 text-green-100';
+            case 'red':
+                return 'bg-red-600 text-red-100';
+            case 'purple':
+                return 'bg-purple-600 text-purple-100';
+            case 'orange':
+                return 'bg-orange-600 text-orange-100';
+            default:
+                return 'bg-indigo-600 text-indigo-100';
         }
     };
 
-    const getTrendColorClass = (trendStatus) => {
+    const getTrendColor = (trendStatus) => {
         switch (trendStatus) {
-            case 'up': return 'text-success';
-            case 'down': return 'text-danger';
-            case 'neutral': return 'text-muted';
-            default: return '';
+            case 'up':
+                return 'text-green-500';
+            case 'down':
+                return 'text-red-500';
+            default:
+                return 'text-gray-400';
         }
     };
 
-    const getTrendIconClass = (trendStatus) => {
+    const getTrendIcon = (trendStatus) => {
         switch (trendStatus) {
-            case 'up': return 'fas fa-arrow-up';
-            case 'down': return 'fas fa-arrow-down';
-            case 'neutral': return 'fas fa-minus';
-            default: return '';
+            case 'up':
+                return 'fas fa-arrow-up';
+            case 'down':
+                return 'fas fa-arrow-down';
+            default:
+                return 'fas fa-minus';
+        }
+    };
+
+    const getIconClass = (iconName) => {
+        switch (iconName) {
+            case 'movie':
+                return 'fas fa-film';
+            case 'ticket':
+                return 'fas fa-ticket-alt';
+            case 'money':
+                return 'fas fa-dollar-sign';
+            case 'users':
+                return 'fas fa-users';
+            default:
+                return iconName;
         }
     };
 
     return (
-        <div className={`card admin-card ${className}`}>
-            <div className="admin-card-content">
-                <div className="admin-card-header">
-                    <div className={`admin-card-icon ${getColorClass(color)}`}>
-                        <i className={`${icon}`}></i>
+        <div className={`bg-gray-800 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow ${className}`}>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${getColorClasses(color)}`}>
+                        <i className={`${getIconClass(icon)} text-lg`}></i>
                     </div>
-                    <div className="admin-card-info">
-                        <p className="admin-card-title-text">{title}</p>
-                        <h3 className="admin-card-value-text">{value}</h3>
+                    <div>
+                        <p className="text-gray-400 text-sm font-medium">{title}</p>
+                        <h3 className="text-2xl font-bold text-white">{value}</h3>
                     </div>
-                </div>
-
-                {trend && (
-                    <div className="admin-card-trend">
-                        <i className={`${getTrendIconClass(trend)} ${getTrendColorClass(trend)}`}></i>
-                        <span className={`${getTrendColorClass(trend)}`}>
-                            {trendValue}
-                        </span>
+                </div>                {trend && trendValue && (
+                    <div className={`flex items-center space-x-1 ${getTrendColor(trend)}`}>
+                        <i className={`${getTrendIcon(trend)} text-sm`}></i>
+                        <span className="text-sm font-medium">{trendValue}</span>
                     </div>
                 )}
             </div>

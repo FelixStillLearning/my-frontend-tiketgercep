@@ -1,5 +1,5 @@
 // src/pages/user/BookingPage.jsx
-// TODO: Implement booking process page
+// Implementation of booking process page using real API data
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -9,6 +9,9 @@ import Footer from '../../components/common/Footer';
 import SeatMap from '../../components/user/SeatMap';
 import BookingSummary from '../../components/user/BookingSummary';
 import showtimeService from '../../services/showtimeService';
+import { movieService } from '../../services/MovieService';
+import studioService from '../../services/studioService';
+import seatService from '../../services/seatService';
 import bookingService from '../../services/bookingService';
 
 const BookingPage = () => {
@@ -18,36 +21,53 @@ const BookingPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showtime, setShowtime] = useState(null);
+  const [movie, setMovie] = useState(null);
+  const [studio, setStudio] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [bookedSeats, setBookedSeats] = useState([]);
+  const [studioSeats, setStudioSeats] = useState([]);
 
   useEffect(() => {
-    const fetchShowtimeData = async () => {
+    const fetchBookingData = async () => {
       try {
         setLoading(true);
-        const data = await showtimeService.getShowtimeById(showtimeId);
-        setShowtime(data);
-        setBookedSeats(data.bookedSeats || []);
+        
+        // Fetch showtime details
+        const showtimeData = await showtimeService.getShowtimeById(showtimeId);
+        setShowtime(showtimeData);
+        
+        // Fetch movie details
+        const movieData = await movieService.getById(showtimeData.movie_id);
+        setMovie(movieData);
+        
+        // Fetch studio details
+        const studioData = await studioService.getStudioById(showtimeData.studio_id);
+        setStudio(studioData);
+        
+        // Fetch studio seats
+        const seats = await seatService.getByStudioId(showtimeData.studio_id);
+        setStudioSeats(seats);
+        
+        // Fetch booked seats for this showtime
+        const bookedSeatsData = await seatService.getBookedSeatsByShowtimeId(showtimeId);
+        const bookedSeatIds = bookedSeatsData.map(bs => `${bs.Seat.seat_row}-${bs.Seat.seat_number}`);
+        setBookedSeats(bookedSeatIds);
+        
+        setLoading(false);
       } catch (err) {
-        setError('Failed to load showtime data');
-        console.error(err);
-      } finally {
+        console.error('Error fetching booking data:', err);
+        setError('Failed to load booking data. Please try again later.');
         setLoading(false);
       }
     };
 
-    fetchShowtimeData();
+    if (showtimeId) {
+      fetchBookingData();
+    }
   }, [showtimeId]);
-
-  const handleSeatSelect = (seatId) => {
-    setSelectedSeats(prev => {
-      if (prev.includes(seatId)) {
-        return prev.filter(id => id !== seatId);
-      }
-      return [...prev, seatId];
-    });
+  const handleSeatSelect = (selectedSeatIds) => {
+    setSelectedSeats(selectedSeatIds);
   };
-
   const handleBooking = async () => {
     if (!user) {
       navigate('/login', { state: { from: `/booking/${showtimeId}` } });
@@ -61,58 +81,74 @@ const BookingPage = () => {
 
     try {
       setLoading(true);
+      
+      // Convert seat IDs to actual seat records for booking
+      const selectedSeatRecords = selectedSeats.map(seatId => {
+        const [row, seatNum] = seatId.split('-');
+        return studioSeats.find(seat => 
+          seat.seat_row === parseInt(row) && seat.seat_number === parseInt(seatNum)
+        );
+      }).filter(Boolean);
+
       const bookingData = {
-        showtimeId,
-        userId: user.id,
-        seats: selectedSeats,
-        totalAmount: selectedSeats.length * showtime.pricePerSeat
+        user_id: user.user_id,
+        showtime_id: parseInt(showtimeId),
+        booking_code: `BK${Date.now()}`,
+        total_seats: selectedSeats.length,
+        total_price: selectedSeats.length * parseFloat(showtime.ticket_price),
+        status: 'confirmed',
+        booking_date: new Date().toISOString().split('T')[0],
+        seats: selectedSeatRecords.map(seat => seat.seat_id)
       };
 
       const booking = await bookingService.createBooking(bookingData);
-      navigate(`/bookings/${booking.id}`);
+      navigate(`/bookings/${booking.booking_id}`);
     } catch (err) {
-      setError('Failed to create booking');
-      console.error(err);
+      console.error('Booking error:', err);
+      setError('Failed to create booking. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-gray-900">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          <div className="text-center">Loading...</div>
+          <div className="text-center text-gray-400">Loading booking data...</div>
         </div>
         <Footer />
       </div>
     );
   }
 
-  if (error || !showtime) {
+  if (error || !showtime || !movie) {
     return (
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen bg-gray-900">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          <div className="text-center text-red-600">{error || 'Showtime not found'}</div>
+          <div className="text-center text-red-400">{error || 'Booking data not found'}</div>
         </div>
         <Footer />
       </div>
     );
   }
+
+  // Calculate studio layout from seat data
+  const maxRow = Math.max(...studioSeats.map(seat => seat.seat_row));
+  const maxSeatNumber = Math.max(...studioSeats.map(seat => seat.seat_number));
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-900">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Seat Selection */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-6">Select Seats</h2>
+          <div className="bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 className="text-2xl font-bold text-white mb-6">Select Seats</h2>
             <SeatMap
-              rows={showtime.studio.rows}
-              seatsPerRow={showtime.studio.seatsPerRow}
+              rows={maxRow + 1}
+              seatsPerRow={maxSeatNumber + 1}
               bookedSeats={bookedSeats}
               onSeatSelect={handleSeatSelect}
               selectedSeats={selectedSeats}
@@ -120,14 +156,23 @@ const BookingPage = () => {
           </div>
 
           {/* Booking Summary */}
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-gray-800 rounded-lg shadow-md p-6">
             <BookingSummary
-              movie={showtime.movie}
-              showtime={showtime}
+              movie={{
+                title: movie.title,
+                genre: movie.genre,
+                duration: movie.duration,
+                posterUrl: movie.poster_url || 'https://via.placeholder.com/300x450?text=No+Image'
+              }}
+              showtime={{
+                date: showtime.show_date,
+                startTime: showtime.show_time,
+                studioName: studio ? studio.name : `Studio ${showtime.studio_id}`
+              }}
               selectedSeats={selectedSeats}
-              pricePerSeat={showtime.pricePerSeat}
+              pricePerSeat={parseFloat(showtime.ticket_price)}
               onConfirm={handleBooking}
-              onCancel={() => navigate(`/movies/${showtime.movie.id}`)}
+              onCancel={() => navigate(`/movies/${movie.movie_id}`)}
             />
           </div>
         </div>

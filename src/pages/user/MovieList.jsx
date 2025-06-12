@@ -2,75 +2,49 @@
 // TODO: Implement browse movies page
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import Navbar from '../../components/common/Navbar';
-import MovieCard from '../../components/user/MovieCard';
+import MovieCard from '../../components/common/MovieCard';
 import Footer from '../../components/common/Footer';
+import { movieService } from '../../services/MovieService';
 
 const MovieList = () => {
     const [movies, setMovies] = useState([]);
     const [filteredMovies, setFilteredMovies] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedGenre, setSelectedGenre] = useState('all');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Mock data for demonstration
+    // Fetch real data from API
     useEffect(() => {
-        // In a real app, this would be an API call
-        const mockMovies = [
-            {
-                id: 1,
-                title: 'Spider-Man: Across the Spider-Verse',
-                posterUrl: 'https://image.tmdb.org/t/p/original/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg',
-                rating: 4.8,
-                genre: 'Animation, Action',
-                duration: '2h 20m',
-                releaseDate: '2023-06-02',
-                description: 'Miles Morales catapults across the Multiverse, where he encounters a team of Spider-People charged with protecting its very existence.'
-            },
-            {
-                id: 2,
-                title: 'The Flash',
-                posterUrl: 'https://image.tmdb.org/t/p/original/r2J02Z2OpNTctfOSN1Ydgii51I3.jpg',
-                rating: 4.5,
-                genre: 'Action, Adventure',
-                duration: '2h 24m',
-                releaseDate: '2023-06-16',
-                description: 'When his attempt to save his family inadvertently alters the future, Barry Allen becomes trapped in a reality in which General Zod has returned.'
-            },
-            {
-                id: 3,
-                title: 'Transformers: Rise of the Beasts',
-                posterUrl: 'https://image.tmdb.org/t/p/original/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg',
-                rating: 4.6,
-                genre: 'Action, Adventure',
-                duration: '2h 7m',
-                releaseDate: '2023-06-09',
-                description: 'When a new threat capable of destroying the entire planet emerges, Optimus Prime and the Autobots must team up with a powerful faction known as the Maximals.'
-            },
-            {
-                id: 4,
-                title: 'Oppenheimer',
-                posterUrl: 'https://image.tmdb.org/t/p/original/5mzr6JZbrqnqD8rCEvPhuCE5Fw2.jpg',
-                rating: 4.7,
-                genre: 'Drama, History',
-                duration: '3h 0m',
-                releaseDate: '2023-07-21',
-                description: 'The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.'
-            },
-            {
-                id: 5,
-                title: 'Barbie',
-                posterUrl: 'https://image.tmdb.org/t/p/original/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg',
-                rating: 4.9,
-                genre: 'Comedy, Adventure',
-                duration: '1h 54m',
-                releaseDate: '2023-07-21',
-                description: 'Barbie suffers a crisis that leads her to question her world and her existence.'
+        const fetchMovies = async () => {
+            try {
+                setLoading(true);
+                const response = await movieService.getAll();
+                
+                // Map API response to the format our components expect
+                const moviesData = response.map(movie => ({
+                    id: movie.movie_id,
+                    title: movie.title,
+                    poster_path: movie.poster_url ? movie.poster_url : 'https://via.placeholder.com/300x450?text=No+Image',
+                    rating: 4.5, // Default rating if not available from API
+                    genre: movie.genre,
+                    duration: `${movie.duration}m`,
+                    release_date: movie.release_date,
+                    description: movie.synopsis
+                }));
+                
+                setMovies(moviesData);
+                setFilteredMovies(moviesData);
+                setLoading(false);
+            } catch (err) {
+                console.error('Error fetching movies:', err);
+                setError('Failed to load movies. Please try again later.');
+                setLoading(false);
             }
-        ];
+        };
 
-        setMovies(mockMovies);
-        setFilteredMovies(mockMovies);
+        fetchMovies();
     }, []);
 
     // Filter movies based on search term and genre
@@ -93,17 +67,20 @@ const MovieList = () => {
         setFilteredMovies(filtered);
     }, [searchTerm, selectedGenre, movies]);
 
-    const genres = ['all', 'action', 'adventure', 'animation', 'comedy', 'drama', 'history'];
-
-    return (
+    const genres = ['all', 'action', 'adventure', 'animation', 'comedy', 'drama', 'history'];    return (
         <div className="min-h-screen bg-gray-900">
             <Navbar />
 
             {/* Header */}
-            <div className="pt-16 pb-8 bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900">
+            <div className="pt-20 pb-8 bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {error && (
+                        <div className="bg-red-500 text-white p-4 rounded-md mb-4">
+                            {error}
+                        </div>
+                    )}
                     <h1 className="text-3xl font-bold text-white text-center">
-                        Browse <span className="text-indigo-400">Movies</span>
+                        Browse <span className="text-indigo-400 glow-text">Movies</span>
                     </h1>
                 </div>
             </div>
@@ -135,18 +112,26 @@ const MovieList = () => {
                             </button>
                         ))}
                     </div>
-                </div>
+                </div>                {/* Movie Grid */}
+                {loading ? (
+                    <div className="flex justify-center items-center py-20">
+                        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                        {filteredMovies.map(movie => (
+                            <MovieCard key={movie.id} movie={movie} />
+                        ))}
+                    </div>
+                )}
 
-                {/* Movie Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                    {filteredMovies.map(movie => (
-                        <MovieCard key={movie.id} {...movie} />
-                    ))}
-                </div>
-
-                {filteredMovies.length === 0 && (
+                {!loading && filteredMovies.length === 0 && (
                     <div className="text-center py-12">
-                        <p className="text-gray-400 text-lg">No movies found matching your criteria.</p>
+                        <div className="mb-4">
+                            <i className="fas fa-film text-6xl text-gray-600"></i>
+                        </div>
+                        <p className="text-gray-400 text-lg mb-2">No movies found matching your criteria.</p>
+                        <p className="text-gray-500 text-sm">Try adjusting your search or filter settings.</p>
                     </div>
                 )}
             </div>
