@@ -137,36 +137,41 @@ const BookingManager = () => {
             currency: 'IDR',
             minimumFractionDigits: 0
         }).format(amount);
-    };
-
-    const columns = [
+    };    const columns = [
         {
-            header: 'Booking ID',
+            key: 'booking_id',
+            label: 'Booking ID',
             accessor: 'booking_id'
         },
         {
-            header: 'Booking Code',
+            key: 'booking_code',
+            label: 'Booking Code',
             accessor: 'booking_code'
         },
         {
-            header: 'User ID',
+            key: 'user_id',
+            label: 'User ID',
             accessor: 'user_id'
         },
         {
-            header: 'Showtime ID',
+            key: 'showtime_id',
+            label: 'Showtime ID',
             accessor: 'showtime_id'
         },
         {
-            header: 'Total Seats',
+            key: 'total_seats',
+            label: 'Total Seats',
             accessor: 'total_seats'
         },
         {
-            header: 'Total Price',
+            key: 'total_price',
+            label: 'Total Price',
             accessor: 'total_price',
             render: (price) => formatCurrency(price)
         },
         {
-            header: 'Status',
+            key: 'status',
+            label: 'Status',
             accessor: 'status',
             render: (status) => (
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -175,16 +180,22 @@ const BookingManager = () => {
                     status === 'cancelled' ? 'bg-red-100 text-red-800' :
                     'bg-gray-100 text-gray-800'
                 }`}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                    {status && typeof status === 'string' 
+                        ? status.charAt(0).toUpperCase() + status.slice(1)
+                        : status || 'Unknown'
+                    }
                 </span>
             )
         },
         {
-            header: 'Booking Date',
+            key: 'booking_date',
+            label: 'Booking Date',
             accessor: 'booking_date',
             render: (date) => formatDate(date)
-        },        {
-            header: 'Actions',
+        },
+        {
+            key: 'actions',
+            label: 'Actions',
             accessor: 'actions',
             render: (_, row) => (
                 <div className="flex space-x-2">
@@ -292,7 +303,7 @@ const BookingManager = () => {
                         </div>
                     )}
 
-                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                    <div className="rounded-lg shadow overflow-hidden">
                         <DataTable
                             columns={columns}
                             data={bookings}

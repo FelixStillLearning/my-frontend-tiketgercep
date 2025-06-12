@@ -107,25 +107,28 @@ const AdminDashboard = () => {
         };        fetchDashboardData();
     }, []);
 
-    const bookingColumns = [
-        { key: 'movie', label: 'Movie' },
-        { key: 'customer', label: 'Customer' },
-        { key: 'seats', label: 'Seats' },
-        { key: 'amount', label: 'Amount' },
+    const bookingColumns = [        { key: 'movie', label: 'Movie', accessor: 'movie' },
+        { key: 'customer', label: 'Customer', accessor: 'customer' },
+        { key: 'seats', label: 'Seats', accessor: 'seats' },
+        { key: 'amount', label: 'Amount', accessor: 'amount' },
         {
             key: 'status',
             label: 'Status',
-            render: (item) => (
+            accessor: 'status',
+            render: (status, item) => (
                 <span className={`px-2 py-1 rounded-full text-xs ${
-                    item.status === 'completed' ? 'bg-green-500/20 text-green-500' :
-                    item.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
+                    status === 'completed' ? 'bg-green-500/20 text-green-500' :
+                    status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
                     'bg-red-500/20 text-red-500'
                 }`}>
-                    {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                    {status && typeof status === 'string' 
+                        ? status.charAt(0).toUpperCase() + status.slice(1)
+                        : status || 'Unknown'
+                    }
                 </span>
             ),
         },
-        { key: 'date', label: 'Date' },
+        { key: 'date', label: 'Date', accessor: 'date' },
     ];return (
         <div className="admin-layout">
             <AdminNavigation />

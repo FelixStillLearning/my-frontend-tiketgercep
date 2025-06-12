@@ -34,20 +34,24 @@ const AdminStudios = () => {
     useEffect(() => {
         fetchStudios();
     }, []);    const columns = [
-        { key: 'name', label: 'Studio Name' },
-        { key: 'capacity', label: 'Capacity' },
-        { key: 'rows', label: 'Rows' },
-        { key: 'seats_per_row', label: 'Seats per Row' },
+        { key: 'name', label: 'Studio Name', accessor: 'name' },
+        { key: 'capacity', label: 'Capacity', accessor: 'capacity' },
+        { key: 'rows', label: 'Rows', accessor: 'rows' },
+        { key: 'seats_per_row', label: 'Seats per Row', accessor: 'seats_per_row' },
         {
             key: 'status',
             label: 'Status',
-            render: (item) => (
+            accessor: 'status',
+            render: (status, item) => (
                 <span className={`px-2 py-1 rounded-full text-xs ${
-                    item.status === 'active' ? 'bg-green-500/20 text-green-500' :
-                    item.status === 'maintenance' ? 'bg-yellow-500/20 text-yellow-500' :
+                    status === 'active' ? 'bg-green-500/20 text-green-500' :
+                    status === 'maintenance' ? 'bg-yellow-500/20 text-yellow-500' :
                     'bg-gray-500/20 text-gray-500'
                 }`}>
-                    {item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : ''}
+                    {status && typeof status === 'string' 
+                        ? status.charAt(0).toUpperCase() + status.slice(1) 
+                        : status || 'Unknown'
+                    }
                 </span>
             ),
         }

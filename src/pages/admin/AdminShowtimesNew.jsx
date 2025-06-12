@@ -75,31 +75,32 @@ const AdminShowtimes = () => {
             console.error('Error deleting showtime:', err);
             alert('Failed to delete showtime. Please try again.');
         }
-    };
-
-    const columns = [
-        { key: 'showtime_id', label: 'ID' },
+    };    const columns = [
+        { key: 'showtime_id', label: 'ID', accessor: 'showtime_id' },
         { 
             key: 'Movie', 
             label: 'Movie',
-            render: (item) => item.Movie?.title || 'Unknown Movie'
+            accessor: 'Movie',
+            render: (movie, item) => movie?.title || item.Movie?.title || 'Unknown Movie'
         },
         { 
             key: 'Studio', 
             label: 'Studio',
-            render: (item) => item.Studio?.studio_name || 'Unknown Studio'
+            accessor: 'Studio',
+            render: (studio, item) => studio?.studio_name || item.Studio?.studio_name || 'Unknown Studio'
         },
         { 
             key: 'show_date', 
             label: 'Date',
-            render: (item) => new Date(item.show_date).toLocaleDateString()
+            accessor: 'show_date',
+            render: (date, item) => date ? new Date(date).toLocaleDateString() : new Date(item.show_date).toLocaleDateString()
         },
-        { key: 'show_time', label: 'Time' },
-        { 
+        { key: 'show_time', label: 'Time', accessor: 'show_time' },        { 
             key: 'ticket_price', 
             label: 'Price',
-            render: (item) => `Rp ${item.ticket_price?.toLocaleString()}`
-        },
+            accessor: 'ticket_price',
+            render: (price, item) => `Rp ${(price || item.ticket_price)?.toLocaleString()}`
+        }
     ];
 
     return (

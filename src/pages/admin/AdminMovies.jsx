@@ -23,30 +23,32 @@ const AdminMovies = () => {
 
     useEffect(() => {
         fetchMovies();
-    }, []);
-
-    const columns = [
-        { key: 'title', label: 'Title' },
-        { key: 'genre', label: 'Genre' },
-        { key: 'duration', label: 'Duration (min)' },
-        { key: 'rating', label: 'Rating' },
+    }, []);    const columns = [
+        { key: 'title', label: 'Title', accessor: 'title' },
+        { key: 'genre', label: 'Genre', accessor: 'genre' },
+        { key: 'duration', label: 'Duration (min)', accessor: 'duration' },
+        { key: 'rating', label: 'Rating', accessor: 'rating' },
         {
             key: 'status',
             label: 'Status',
-            render: (item) => (
+            accessor: 'status',
+            render: (status, item) => (
                 <span className={`px-2 py-1 rounded-full text-xs ${
-                    item.status === 'now_playing' ? 'bg-green-500/20 text-green-500' :
-                    item.status === 'coming_soon' ? 'bg-blue-500/20 text-blue-500' :
+                    status === 'now_playing' ? 'bg-green-500/20 text-green-500' :
+                    status === 'coming_soon' ? 'bg-blue-500/20 text-blue-500' :
                     'bg-gray-500/20 text-gray-500'
                 }`}>
-                    {item.status.split('_').map(word => 
-                        word.charAt(0).toUpperCase() + word.slice(1)
-                    ).join(' ')}
+                    {status && typeof status === 'string' 
+                        ? status.split('_').map(word => 
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                          ).join(' ')
+                        : status || 'Unknown'
+                    }
                 </span>
             ),
         },
-        { key: 'release_date', label: 'Release Date' },
-    ];    const handleEdit = (movie) => {
+        { key: 'release_date', label: 'Release Date', accessor: 'release_date' },
+    ];const handleEdit = (movie) => {
         // Navigate to edit movie page with movie ID
         navigate(`/admin/movies/edit/${movie.movie_id}`);
     };    const handleDelete = async (movie) => {

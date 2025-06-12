@@ -22,6 +22,8 @@ import AdminStudios from './pages/admin/AdminStudios';
 import StudioFormPage from './pages/admin/StudioFormPage';
 import AdminShowtimes from './pages/admin/AdminShowtimesNew';
 import ShowtimeFormPage from './pages/admin/ShowtimeFormPage';
+import AdminBookings from './pages/admin/AdminBookings';
+import BookingFormPage from './pages/admin/BookingFormPage';
 import BookingManager from './pages/admin/BookingManagerNew';
 import MovieManager from './pages/admin/MovieManager';
 import StudioManager from './pages/admin/StudioManager';
@@ -42,16 +44,21 @@ function App() {
                         <Route path="/movies/:id" element={<MovieDetail />} />
                         <Route path="/booking/:showtimeId" element={<BookingPage />} />
                         <Route path="/bookings" element={<BookingHistory />} />
-                        <Route path="/dashboard" element={<UserDashboard />} />                        {/* Admin Routes - using simple components first */}
+                        <Route path="/dashboard" element={<UserDashboard />} />                        
+                        {/* Admin Routes - using simple components first */}
                         <Route path="/admin" element={<AdminDashboard />} />
-                        <Route path="/admin/movies" element={<AdminMovies />} />                        <Route path="/admin/movies/add" element={<MovieFormPage />} />
+                        <Route path="/admin/movies" element={<AdminMovies />} />                        
+                        <Route path="/admin/movies/add" element={<MovieFormPage />} />
                         <Route path="/admin/movies/edit/:id" element={<MovieFormPage />} />
-                        <Route path="/admin/studios" element={<AdminStudios />} />                        <Route path="/admin/studios/add" element={<StudioFormPage />} />
-                        <Route path="/admin/studios/edit/:id" element={<StudioFormPage />} />
-                        <Route path="/admin/showtimes" element={<AdminShowtimes />} />
+                        <Route path="/admin/studios" element={<AdminStudios />} />                        
+                        <Route path="/admin/studios/add" element={<StudioFormPage />} />
+                        <Route path="/admin/studios/edit/:id" element={<StudioFormPage />} />                        <Route path="/admin/showtimes" element={<AdminShowtimes />} />
                         <Route path="/admin/showtimes/add" element={<ShowtimeFormPage />} />
                         <Route path="/admin/showtimes/edit/:id" element={<ShowtimeFormPage />} />
-                        <Route path="/admin/bookings" element={<BookingManager />} />
+                        <Route path="/admin/bookings" element={<AdminBookings />} />
+                        <Route path="/admin/bookings/add" element={<BookingFormPage />} />
+                        <Route path="/admin/bookings/edit/:id" element={<BookingFormPage />} />
+                        <Route path="/admin/bookings/manage" element={<BookingManager />} />
                         
                         {/* New Admin Manager Routes with CRUD */}
                         <Route path="/admin/manage/movies" element={<MovieManager />} />

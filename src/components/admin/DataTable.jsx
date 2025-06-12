@@ -87,16 +87,15 @@ const DataTable = ({
             <div className="overflow-x-auto bg-gray-700 rounded-lg">
                 <table className="w-full text-left">
                     <thead>
-                        <tr className="border-b border-gray-600">
-                            {columns.map((column) => (
+                        <tr className="border-b border-gray-600">                            {columns.map((column) => (
                                 <th
-                                    key={column.key}
+                                    key={column.key || column.accessor}
                                     className="px-6 py-4 text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-600 transition-colors"
-                                    onClick={() => handleSort(column.key)}
+                                    onClick={() => handleSort(column.key || column.accessor)}
                                 >
                                     <div className="flex items-center space-x-1">
-                                        <span>{column.label}</span>
-                                        {sortConfig.key === column.key && (
+                                        <span>{column.label || column.header}</span>
+                                        {sortConfig.key === (column.key || column.accessor) && (
                                             <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'} text-indigo-400`}></i>
                                         )}
                                     </div>
@@ -111,10 +110,9 @@ const DataTable = ({
                     </thead>
                     <tbody className="divide-y divide-gray-600">
                         {paginatedData.map((item, index) => (
-                            <tr key={item.id || index} className="hover:bg-gray-600 transition-colors">
-                                {columns.map((column) => (
-                                    <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                        {column.render ? column.render(item) : item[column.key]}
+                            <tr key={item.id || index} className="hover:bg-gray-600 transition-colors">                                {columns.map((column) => (
+                                    <td key={column.key || column.accessor} className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                        {column.render ? column.render(item[column.accessor] || item[column.key], item) : item[column.accessor] || item[column.key]}
                                     </td>
                                 ))}
                                 {(onEdit || onDelete) && (
