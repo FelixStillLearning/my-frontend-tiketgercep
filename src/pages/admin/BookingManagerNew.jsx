@@ -261,7 +261,7 @@ const BookingManager = () => {
             <AdminNavigation />
             <div className="admin-main-content">
                 <div className="p-8">                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-2xl font-bold text-gray-800">Manage Bookings</h1>
+                        <h1 className="text-2xl font-bold text-white">Manage Bookings</h1>
                         <div className="flex space-x-2">
                             <Button
                                 onClick={handleAddBooking}

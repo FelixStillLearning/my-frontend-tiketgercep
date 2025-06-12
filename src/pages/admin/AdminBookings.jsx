@@ -142,7 +142,7 @@ const AdminBookings = () => {
                 <div className="p-8">
                     <div className="max-w-7xl mx-auto">
                         <div className="flex justify-between items-center mb-8">
-                            <h1 className="text-3xl font-bold text-gray-800">Bookings Management</h1>
+                            <h1 className="text-3xl font-bold text-white-800">Bookings Management</h1>
                             <button
                                 onClick={() => navigate('/admin/bookings/add')}
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2"

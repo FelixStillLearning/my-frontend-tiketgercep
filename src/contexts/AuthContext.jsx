@@ -27,16 +27,22 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
   const login = async (email, password) => {
     try {
       setError(null);
+      console.log('Attempting login with:', { email, password }); // Debug log
+      
       const response = await api.post('/users/login', { email, password });
+      console.log('Login response:', response.data); // Debug log
+      
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       setUser(user);
+      console.log('User set in context:', user); // Debug log
+      
       return user;
     } catch (error) {
+      console.error('Login error in AuthContext:', error); // Debug log
       setError(error.response?.data?.message || 'Login failed');
       throw error;
     }
@@ -55,10 +61,15 @@ export const AuthProvider = ({ children }) => {
       throw error;
     }
   };
-
   const logout = () => {
+    // Clear all authentication data from localStorage
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('tiketgercep_user');
+    
+    // Clear user state
     setUser(null);
+    setError(null);
   };
 
   const updateProfile = async (userData) => {

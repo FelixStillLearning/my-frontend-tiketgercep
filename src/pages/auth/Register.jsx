@@ -41,11 +41,15 @@ const Register = () => {
         if (formData.password.length < 6) {
             setError('Password must be at least 6 characters');
             return;
-        }
-
-        try {
+        }        try {
             setLoading(true);
-            await register(formData.email, formData.password, formData.name);
+            // Prepare user data object for registration
+            const userData = {
+                name: formData.name,
+                email: formData.email,
+                password: formData.password
+            };
+            await register(userData);
             navigate('/login', { state: { message: 'Registration successful! Please login.' } });
         } catch (err) {
             setError(err.message || 'Failed to register');

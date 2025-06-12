@@ -22,8 +22,13 @@ const MovieList = () => {
                 setLoading(true);
                 const response = await movieService.getAll();
                 
+                // Check if API response is successful
+                if (!response.success) {
+                    throw new Error(response.error || 'Failed to fetch movies');
+                }
+                
                 // Map API response to the format our components expect
-                const moviesData = response.map(movie => ({
+                const moviesData = response.data.map(movie => ({
                     id: movie.movie_id,
                     title: movie.title,
                     poster_path: movie.poster_url ? movie.poster_url : 'https://via.placeholder.com/300x450?text=No+Image',
@@ -36,10 +41,13 @@ const MovieList = () => {
                 
                 setMovies(moviesData);
                 setFilteredMovies(moviesData);
-                setLoading(false);
+                setError(null);
             } catch (err) {
                 console.error('Error fetching movies:', err);
                 setError('Failed to load movies. Please try again later.');
+                setMovies([]);
+                setFilteredMovies([]);
+            } finally {
                 setLoading(false);
             }
         };

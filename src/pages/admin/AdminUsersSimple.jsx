@@ -81,7 +81,7 @@ const AdminUsersSimple = () => {
             <div className="admin-main-content">
                 <div className="p-8">
                     <div className="flex justify-between items-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-800">Users Management</h1>
+                        <h1 className="text-3xl font-bold text-white-800">Users Management</h1>
                         <button
                             onClick={handleAdd}
                             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium"

@@ -42,9 +42,7 @@ const AdminDashboard = () => {
         },
     ]);
     const [recentBookings, setRecentBookings] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    // Fetch data dari API saat component mount
+    const [loading, setLoading] = useState(true);    // Fetch data dari API saat component mount
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
@@ -129,8 +127,7 @@ const AdminDashboard = () => {
                 // Jika error, tetap gunakan data kosong/default
             } finally {
                 setLoading(false);
-            }
-        };
+            }        };
 
         fetchDashboardData();
     }, []);

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const AdminNavigation = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { logout } = useAuth();
     const [isCollapsed, setIsCollapsed] = useState(false);const menuItems = [
         {
             title: 'Dashboard',
@@ -37,19 +39,22 @@ const AdminNavigation = () => {
         }
     ];    const handleLogout = () => {
         try {
-            // Clear all authentication data from localStorage
+            // Use AuthContext logout function to properly clear user state
+            logout();
+            
+            // Also clear any additional localStorage items (for safety)
             localStorage.removeItem('user');
             localStorage.removeItem('token');
             localStorage.removeItem('tiketgercep_user');
             
-            // Redirect to homepage (not login page)
+            // Redirect to homepage
             navigate('/');
             
             // Show success message
             console.log('Admin logged out successfully');
         } catch (error) {
             console.error('Logout error:', error);
-            // Still clear localStorage and redirect even if logout function fails
+            // Fallback: still clear localStorage and redirect even if logout function fails
             localStorage.removeItem('user');
             localStorage.removeItem('token');
             localStorage.removeItem('tiketgercep_user');

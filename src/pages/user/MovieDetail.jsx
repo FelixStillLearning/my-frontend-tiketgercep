@@ -25,31 +25,45 @@ const MovieDetail = () => {
             try {
                 setLoading(true);
                 
-                // Fetch movie details
-                const movieData = await movieService.getById(id);
+                // Fetch movie details - handle apiCall wrapper response
+                const movieResponse = await movieService.getById(id);
+                console.log('MovieService response:', movieResponse);
                 
-                // Format movie data
+                // Check if API call was successful
+                if (!movieResponse.success) {
+                    throw new Error(movieResponse.error || 'Failed to fetch movie data');
+                }
+                
+                const movieData = movieResponse.data;
+                console.log('Extracted movie data:', movieData);
+                
+                // Format movie data sesuai dengan response database
                 const formattedMovie = {
                     id: movieData.movie_id,
-                    title: movieData.title,
-                    poster_path: movieData.poster_url || 'https://via.placeholder.com/300x450?text=No+Image',
-                    rating: movieData.rating,
-                    genre: movieData.genre,
-                    duration: `${movieData.duration}m`,
-                    release_date: movieData.release_date,
-                    description: movieData.synopsis,
-                    director: 'Not available', // This may need to be added to the API
-                    cast: 'Not available',     // This may need to be added to the API
-                    language: 'English',       // This may need to be added to the API
-                    ageRating: movieData.rating
+                    title: movieData.title || 'Unknown Title',
+                    poster_path: movieData.poster_url || 'https://via.placeholder.com/300x450/444444/ffffff?text=No+Image+Available',
+                    poster_url_original: movieData.poster_url, // Keep original URL for debugging
+                    rating: movieData.rating || 'Not Rated',
+                    genre: movieData.genre || 'Unknown Genre',
+                    duration: movieData.duration ? `${movieData.duration} minutes` : 'Unknown Duration',
+                    release_date: movieData.release_date || 'Unknown Release Date',
+                    synopsis: movieData.synopsis || 'No synopsis available',
+                    // Fields yang tidak ada di database, bisa ditambahkan nanti
+                    director: 'To be updated',
+                    cast: 'To be updated', 
+                    language: 'English'
                 };
+                
+                console.log('Formatted movie data:', formattedMovie);
                 setMovie(formattedMovie);
                 
                 // Fetch showtimes for this movie
                 const showtimesData = await showtimeService.getByMovieId(id);
+                console.log('Fetched showtimes data:', showtimesData);
                 
                 // Group showtimes by date
                 const groupedShowtimes = groupShowtimesByDate(showtimesData);
+                console.log('Grouped showtimes:', groupedShowtimes);
                 setShowtimes(groupedShowtimes);
                 
                 // Set default selected date to the first available date
@@ -67,6 +81,11 @@ const MovieDetail = () => {
 
         // Group showtimes by date
         const groupShowtimesByDate = (showtimesData) => {
+            if (!showtimesData || !Array.isArray(showtimesData)) {
+                console.log('Invalid showtimes data:', showtimesData);
+                return [];
+            }
+            
             const groupedByDate = {};
             
             showtimesData.forEach(showtime => {
@@ -83,11 +102,12 @@ const MovieDetail = () => {
                 groupedByDate[date].times.push({
                     id: showtime.showtime_id,
                     time: showtime.show_time,
-                    studio: `Studio ${showtime.studio_id}`, // This might need to be changed based on actual studio data
+                    studio: showtime.Studio ? showtime.Studio.studio_name : `Studio ${showtime.studio_id}`,
                     price: parseFloat(showtime.ticket_price)
                 });
             });
-              return Object.values(groupedByDate);
+            
+            return Object.values(groupedByDate);
         };
 
         if (id) {
@@ -162,35 +182,69 @@ const MovieDetail = () => {
                                 src={movie.poster_path}
                                 alt={movie.title}
                                 className="w-full rounded-lg shadow-xl"
+                                onError={(e) => {
+                                    console.log('Poster failed to load:', movie.poster_path);
+                                    console.log('Original URL:', movie.poster_url_original);
+                                    
+                                    // Try different fallback options
+                                    if (e.target.src !== 'https://via.placeholder.com/300x450/444444/ffffff?text=No+Image+Available') {
+                                        // First fallback: generic placeholder
+                                        e.target.src = 'https://via.placeholder.com/300x450/444444/ffffff?text=No+Image+Available';
+                                    } else if (e.target.src !== 'https://picsum.photos/300/450?grayscale') {
+                                        // Second fallback: random image from Picsum
+                                        e.target.src = 'https://picsum.photos/300/450?grayscale';
+                                    } else {
+                                        // Final fallback: base64 encoded minimal image
+                                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQ1MCIgdmlld0JveD0iMCAwIDMwMCA0NTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjNDQ0NDQ0Ii8+Cjx0ZXh0IHg9IjE1MCIgeT0iMjI1IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4Ij5ObyBJbWFnZTwvdGV4dD4KPC9zdmc+';
+                                    }
+                                }}
+                                onLoad={() => {
+                                    console.log('Poster loaded successfully:', movie.poster_path);
+                                }}
                             />
                         </div>
                         <div className="w-full md:w-2/3">
-                            <h1 className="text-3xl font-bold text-white mb-4">{movie.title}</h1>
-                            <div className="flex items-center gap-4 mb-4">
+                            <h1 className="text-4xl font-bold text-white mb-4">{movie.title}</h1>
+                            <div className="flex items-center gap-6 mb-6">
                                 <div className="flex items-center text-amber-400">
-                                    <i className="fas fa-star mr-1"></i>
-                                    <span>{movie.rating}/5</span>
+                                    <i className="fas fa-star mr-2"></i>
+                                    <span className="text-lg font-semibold">{movie.rating}</span>
                                 </div>
-                                <span className="text-gray-300">{movie.duration}</span>
-                                <span className="text-gray-300">{new Date(movie.release_date).toLocaleDateString()}</span>
+                                <div className="flex items-center text-gray-300">
+                                    <i className="fas fa-clock mr-2"></i>
+                                    <span>{movie.duration}</span>
+                                </div>
+                                <div className="flex items-center text-gray-300">
+                                    <i className="fas fa-calendar mr-2"></i>
+                                    <span>{new Date(movie.release_date).toLocaleDateString('id-ID', {
+                                        year: 'numeric',
+                                        month: 'long', 
+                                        day: 'numeric'
+                                    })}</span>
+                                </div>
                             </div>
-                            <p className="text-gray-300 mb-6">{movie.description}</p>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                            
+                            <div className="mb-6">
+                                <h3 className="text-xl font-semibold text-white mb-3">Synopsis</h3>
+                                <p className="text-gray-300 leading-relaxed">{movie.synopsis}</p>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-6 text-sm">
                                 <div>
-                                    <p className="text-gray-400">Director</p>
-                                    <p className="text-white">{movie.director}</p>
+                                    <p className="text-gray-400 mb-1">Genre</p>
+                                    <p className="text-white font-medium">{movie.genre}</p>
                                 </div>
                                 <div>
-                                    <p className="text-gray-400">Cast</p>
-                                    <p className="text-white">{movie.cast}</p>
+                                    <p className="text-gray-400 mb-1">Rating</p>
+                                    <p className="text-white font-medium">{movie.rating}</p>
                                 </div>
                                 <div>
-                                    <p className="text-gray-400">Genre</p>
-                                    <p className="text-white">{movie.genre}</p>
+                                    <p className="text-gray-400 mb-1">Director</p>
+                                    <p className="text-white font-medium">{movie.director}</p>
                                 </div>
                                 <div>
-                                    <p className="text-gray-400">Language</p>
-                                    <p className="text-white">{movie.language}</p>
+                                    <p className="text-gray-400 mb-1">Language</p>
+                                    <p className="text-white font-medium">{movie.language}</p>
                                 </div>
                             </div>
                         </div>
@@ -203,58 +257,68 @@ const MovieDetail = () => {
                 <h2 className="text-2xl font-bold text-white mb-6">Select Showtime</h2>
                 
                 {/* Date Selection */}
-                <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
-                    {showtimes.map(showtime => (
-                        <button
-                            key={showtime.id}
-                            className={`px-6 py-3 rounded-lg text-sm font-medium whitespace-nowrap ${
-                                selectedDate === showtime.date
-                                    ? 'bg-indigo-600 text-white'
-                                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                            }`}
-                            onClick={() => handleDateSelect(showtime.date)}
-                        >
-                            {new Date(showtime.date).toLocaleDateString('en-US', {
-                                weekday: 'short',
-                                month: 'short',
-                                day: 'numeric'
-                            })}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Time Selection */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
-                    {showtimes
-                        .find(s => s.date === selectedDate)
-                        ?.times.map(time => (
+                {showtimes.length > 0 ? (
+                    <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
+                        {showtimes.map(showtime => (
                             <button
-                                key={time.id}
-                                className={`p-4 rounded-lg text-center ${
-                                    selectedShowtime?.id === time.id
+                                key={showtime.id}
+                                className={`px-6 py-3 rounded-lg text-sm font-medium whitespace-nowrap ${
+                                    selectedDate === showtime.date
                                         ? 'bg-indigo-600 text-white'
                                         : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                                 }`}
-                                onClick={() => handleShowtimeSelect(time)}
+                                onClick={() => handleDateSelect(showtime.date)}
                             >
-                                <p className="text-lg font-medium">{time.time}</p>
-                                <p className="text-sm">{time.studio}</p>
-                                <p className="text-sm mt-1">Rp {time.price.toLocaleString()}</p>
+                                {new Date(showtime.date).toLocaleDateString('id-ID', {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric'
+                                })}
                             </button>
                         ))}
-                </div>
+                    </div>
+                ) : (
+                    <div className="text-center py-8">
+                        <p className="text-gray-400 text-lg">No showtimes available for this movie</p>
+                    </div>
+                )}
+
+                {/* Time Selection */}
+                {selectedDate && showtimes.find(s => s.date === selectedDate)?.times.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-8">
+                        {showtimes
+                            .find(s => s.date === selectedDate)
+                            ?.times.map(time => (
+                                <button
+                                    key={time.id}
+                                    className={`p-4 rounded-lg text-center ${
+                                        selectedShowtime?.id === time.id
+                                            ? 'bg-indigo-600 text-white'
+                                            : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                                    }`}
+                                    onClick={() => handleShowtimeSelect(time)}
+                                >
+                                    <p className="text-lg font-medium">{time.time.substring(0, 5)}</p>
+                                    <p className="text-sm">{time.studio}</p>
+                                    <p className="text-sm mt-1">Rp {time.price.toLocaleString('id-ID')}</p>
+                                </button>
+                            ))}
+                    </div>
+                )}
 
                 {/* Booking Button */}
-                <div className="flex justify-center">
-                    <Button
-                        variant="primary"
-                        size="lg"
-                        onClick={handleBooking}
-                        disabled={!selectedShowtime}
-                    >
-                        {selectedShowtime ? 'Book Tickets' : 'Select a Showtime'}
-                    </Button>
-                </div>
+                {showtimes.length > 0 && (
+                    <div className="flex justify-center">
+                        <Button
+                            variant="primary"
+                            size="lg"
+                            onClick={handleBooking}
+                            disabled={!selectedShowtime}
+                        >
+                            {selectedShowtime ? 'Book Tickets' : 'Select a Showtime'}
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <Footer />

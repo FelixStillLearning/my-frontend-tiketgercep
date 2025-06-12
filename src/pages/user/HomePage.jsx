@@ -4,27 +4,41 @@ import { useAuth } from '../../contexts/AuthContext';
 import { movieService } from '../../services/MovieService';
 
 const HomePage = () => {
-    // Using auth context without destructuring unused user variable
-    useAuth();
+    const { user, isAuthenticated } = useAuth();
     const [nowPlaying, setNowPlaying] = useState([]);
+    const [comingSoon, setComingSoon] = useState([]);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     // Fetch real data from API
     useEffect(() => {
-        const fetchNowPlayingMovies = async () => {
+        const fetchMovies = async () => {
             try {
                 setLoading(true);
-                // Get movies with 'now_playing' status
-                const response = await movieService.getByStatus('now_playing');
+                setError(null);
                 
-                // Map API response to the format our components expect
-                const moviesData = response.map(movie => ({
+                // Fetch both now playing and coming soon movies
+                const [nowPlayingResponse, comingSoonResponse] = await Promise.all([
+                    movieService.getByStatus('now_playing'),
+                    movieService.getByStatus('coming_soon')
+                ]);
+                
+                // Check if API calls were successful
+                if (!nowPlayingResponse.success) {
+                    throw new Error(nowPlayingResponse.error || 'Failed to fetch now playing movies');
+                }
+                
+                if (!comingSoonResponse.success) {
+                    console.warn('Failed to fetch coming soon movies:', comingSoonResponse.error);
+                }
+                
+                // Map Now Playing movies
+                const nowPlayingData = nowPlayingResponse.data.map(movie => ({
                     id: movie.movie_id,
                     title: movie.title,
-                    poster_path: movie.poster_url ? movie.poster_url : 'https://via.placeholder.com/300x450?text=No+Image',
-                    backdrop_path: movie.poster_url ? movie.poster_url : 'https://via.placeholder.com/1280x720?text=No+Image',
+                    poster_path: movie.poster_url || 'https://via.placeholder.com/300x450?text=No+Image',
+                    backdrop_path: movie.poster_url || 'https://via.placeholder.com/1280x720?text=No+Image',
                     rating: 4.5, // Default rating if not available from API
                     genre: movie.genre,
                     duration: `${movie.duration}m`,
@@ -32,16 +46,34 @@ const HomePage = () => {
                     description: movie.synopsis
                 }));
                 
-                setNowPlaying(moviesData.length > 0 ? moviesData : []);
+                // Debug: Log movie IDs to console
+                console.log('Now Playing Movies:', nowPlayingData.map(m => ({ id: m.id, title: m.title })));
+                
+                // Map Coming Soon movies
+                const comingSoonData = comingSoonResponse.success ? comingSoonResponse.data.map(movie => ({
+                    id: movie.movie_id,
+                    title: movie.title,
+                    poster_path: movie.poster_url || 'https://via.placeholder.com/300x450?text=No+Image',
+                    release_date: new Date(movie.release_date).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    }),
+                    genre: movie.genre,
+                    description: movie.synopsis
+                })) : [];
+                
+                setNowPlaying(nowPlayingData);
+                setComingSoon(comingSoonData);
                 setLoading(false);
             } catch (err) {
-                console.error('Error fetching now playing movies:', err);
+                console.error('Error fetching movies:', err);
                 setError('Failed to load movies. Please try again later.');
                 setLoading(false);
             }
         };
 
-        fetchNowPlayingMovies();
+        fetchMovies();
     }, []);
 
     const nextSlide = useCallback(() => {
@@ -62,41 +94,82 @@ const HomePage = () => {
     return (
         <div className="min-h-screen bg-gray-900 text-white">
             {/* Navigation */}
-            <nav className="bg-gray-900/80 backdrop-blur-md fixed w-full z-50">
+            <nav className="bg-gray-900/90 backdrop-blur-md fixed w-full z-50 border-b border-gray-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center">
                             <div className="flex-shrink-0">
-                                <h1 className="text-2xl font-bold text-indigo-400 glow-text">
-                                    Ticket<span className="text-amber-400">Gercep</span>
-                                </h1>
+                                <Link to="/" className="flex items-center">
+                                    <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 glow-text">
+                                        🎬 Ticket<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400">Gercep</span>
+                                    </h1>
+                                </Link>
                             </div>
                             <div className="hidden md:block ml-10">
                                 <div className="flex items-baseline space-x-4">
-                                    <Link to="/" className="text-indigo-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Home</Link>
-                                    <Link to="/movies" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Movies</Link>
-                                    <Link to="/cinemas" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Cinemas</Link>
-                                    <a href="#promotions" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Promotions</a>
+                                    <Link 
+                                        to="/" 
+                                        className="text-indigo-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative group"
+                                    >
+                                        Home
+                                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-400 group-hover:w-full transition-all duration-300"></span>
+                                    </Link>
+                                    <Link 
+                                        to="/movies" 
+                                        className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative group"
+                                    >
+                                        Movies
+                                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-400 group-hover:w-full transition-all duration-300"></span>
+                                    </Link>
+                                    <a 
+                                        href="#features" 
+                                        className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative group"
+                                    >
+                                        Features
+                                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-400 group-hover:w-full transition-all duration-300"></span>
+                                    </a>
+                                    <a 
+                                        href="#promotions" 
+                                        className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 relative group"
+                                    >
+                                        Promotions
+                                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-400 group-hover:w-full transition-all duration-300"></span>
+                                    </a>
                                 </div>
                             </div>
                         </div>
                         <div className="hidden md:block">
-                            <div className="ml-4 flex items-center md:ml-6">
-                                <Link to="/login" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                            <div className="ml-4 flex items-center md:ml-6 space-x-3">
+                                <Link 
+                                    to="/login" 
+                                    className="text-gray-300 hover:text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                                >
                                     Sign In
+                                </Link>
+                                <Link 
+                                    to="/register" 
+                                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105"
+                                >
+                                    Join Now
                                 </Link>
                             </div>
                         </div>
                         <div className="-mr-2 flex md:hidden">
-                            <button className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white focus:outline-none">
+                            <button className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none transition-colors duration-200">
                                 <i className="fas fa-bars"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             </nav>            {/* Hero Section */}
-            <div className="pt-16 pb-12 bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="min-h-screen flex items-center bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 relative overflow-hidden">
+                {/* Background Animation */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full animate-pulse"></div>
+                    <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-amber-500/20 to-pink-500/20 rounded-full animate-pulse delay-1000"></div>
+                </div>
+                
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col justify-center min-h-screen">
                     {error && (
                         <div className="bg-red-500 text-white p-4 rounded-md mb-4">
                             {error}
@@ -108,18 +181,77 @@ const HomePage = () => {
                             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
                         </div>
                     )}
+                    
                     <div className="text-center">
-                        <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                            Experience Movie Magic
-                        </h1>
-                        <p className="mt-3 max-w-md mx-auto text-base text-gray-300 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-                            Book tickets instantly to your favorite movies. No queues, no waiting.
-                        </p>
-                        <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
-                            <div className="rounded-md shadow">
-                                <Link to="/movies" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 md:py-4 md:text-lg md:px-10">
-                                    Book Now
+                        <div className="animate-fade-in-up">
+                            {isAuthenticated && (
+                                <div className="mb-6">
+                                    <p className="text-xl text-indigo-300 mb-2">
+                                        Welcome back, {user?.name || user?.email || 'User'}! 👋
+                                    </p>
+                                    <p className="text-gray-400">
+                                        Ready to watch some amazing movies?
+                                    </p>
+                                </div>
+                            )}
+                            
+                            <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl">
+                                Experience 
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 glow-text">
+                                    {" "}Movie Magic
+                                </span>
+                            </h1>
+                            <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-300 sm:text-2xl">
+                                Book tickets instantly to your favorite movies. No queues, no waiting. 
+                                <span className="text-amber-400 font-semibold"> Just pure entertainment.</span>
+                            </p>
+                        </div>
+                        
+                        {/* Call to Action Buttons */}
+                        <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
+                            <Link 
+                                to="/movies" 
+                                className="group relative overflow-hidden bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                            >
+                                <span className="relative z-10 flex items-center">
+                                    <i className="fas fa-play mr-3"></i>
+                                    Book Your Movie Now
+                                </span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                            </Link>
+                            
+                            {isAuthenticated ? (
+                                <Link 
+                                    to="/dashboard" 
+                                    className="bg-transparent border-2 border-indigo-400 hover:bg-indigo-400 text-indigo-400 hover:text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                                >
+                                    <i className="fas fa-user mr-3"></i>
+                                    My Account
                                 </Link>
+                            ) : (
+                                <Link 
+                                    to="/register" 
+                                    className="bg-transparent border-2 border-indigo-400 hover:bg-indigo-400 text-indigo-400 hover:text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                                >
+                                    <i className="fas fa-user-plus mr-3"></i>
+                                    Join TicketGercep
+                                </Link>
+                            )}
+                        </div>
+                        
+                        {/* Stats Section */}
+                        <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-amber-400">10,000+</div>
+                                <div className="text-gray-300 mt-1">Happy Customers</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-indigo-400">500+</div>
+                                <div className="text-gray-300 mt-1">Movies Available</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-purple-400">50+</div>
+                                <div className="text-gray-300 mt-1">Cinema Locations</div>
                             </div>
                         </div>
                     </div>
@@ -155,10 +287,12 @@ const HomePage = () => {
                                     {nowPlaying.map((movie, index) => (
                                         <div 
                                             key={movie.id}
-                                            className={`carousel-item h-full w-full relative ${index === currentSlide ? 'active' : ''}`}
+                                            className={`absolute inset-0 transition-opacity duration-500 ${
+                                                index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                                            }`}
                                         >
                                             <img 
-                                                src={movie.backdrop_path} 
+                                                src={movie.poster_path} 
                                                 alt={movie.title} 
                                                 className="w-full h-full object-cover opacity-40"
                                             />
@@ -167,7 +301,7 @@ const HomePage = () => {
                                                     <h3 className="text-3xl font-bold text-white mb-2">{movie.title}</h3>
                                                     <div className="flex items-center mb-4">
                                                         <span className="text-amber-400 mr-2">
-                                                            <i className="fas fa-star"></i> {movie.rating}
+                                                            <i className="fas fa-star"></i> {movie.rating || 'N/A'}
                                                         </span>
                                                         <span className="text-gray-300 mr-4">{movie.genre}</span>
                                                         <span className="text-gray-300">{movie.duration}</span>
@@ -176,6 +310,7 @@ const HomePage = () => {
                                                     <Link 
                                                         to={`/movies/${movie.id}`}
                                                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-sm font-medium inline-flex items-center transition-colors"
+                                                        onClick={() => console.log('Navigating to movie ID:', movie.id, 'Title:', movie.title)}
                                                     >
                                                         <i className="fas fa-play mr-2"></i>
                                                         Book Tickets
@@ -229,105 +364,179 @@ const HomePage = () => {
                     </h2>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                        {[
-                            {
-                                id: 4,
-                                title: 'Oppenheimer',
-                                poster_path: 'https://image.tmdb.org/t/p/original/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg',
-                                release_date: 'July 21, 2023'
-                            },
-                            {
-                                id: 5,
-                                title: 'Barbie',
-                                poster_path: 'https://image.tmdb.org/t/p/original/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg',
-                                release_date: 'July 21, 2023'
-                            },
-                            {
-                                id: 6,
-                                title: 'Mission: Impossible',
-                                poster_path: 'https://image.tmdb.org/t/p/original/NNxYkU70HPurnNCSiCjYAmacwm.jpg',
-                                release_date: 'July 12, 2023'
-                            },
-                            {
-                                id: 7,
-                                title: 'Meg 2: The Trench',
-                                poster_path: 'https://image.tmdb.org/t/p/original/4HodYYKEIsGOdinkGi2Ucz6X9i0.jpg',
-                                release_date: 'August 4, 2023'
-                            }
-                        ].map((movie) => (
-                            <div key={movie.id} className="movie-card bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300">
+                        {comingSoon.length > 0 ? comingSoon.map((movie) => (
+                            <div key={movie.id} className="movie-card bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover-lift">
                                 <div className="relative pb-2/3 h-64">
                                     <img 
                                         src={movie.poster_path} 
                                         alt={movie.title} 
                                         className="absolute h-full w-full object-cover"
+                                        onError={(e) => {
+                                            e.target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+                                        }}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
                                         <Link 
                                             to={`/movies/${movie.id}`}
-                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium mb-2 text-center"
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium mb-2 text-center transition-colors"
                                         >
                                             View Details
                                         </Link>
                                     </div>
                                 </div>
                                 <div className="p-4">
-                                    <h3 className="text-lg font-semibold text-white">{movie.title}</h3>
-                                    <div className="flex items-center mt-2">
+                                    <h3 className="text-lg font-semibold text-white mb-2">{movie.title}</h3>
+                                    <div className="flex items-center justify-between">
                                         <span className="text-sm text-gray-400">{movie.release_date}</span>
+                                        <span className="text-xs text-indigo-400 bg-indigo-400/10 px-2 py-1 rounded-full">
+                                            Coming Soon
+                                        </span>
                                     </div>
+                                    {movie.genre && (
+                                        <p className="text-xs text-gray-500 mt-1">{movie.genre}</p>
+                                    )}
                                 </div>
                             </div>
-                        ))}
+                        )) : (
+                            // Fallback data jika tidak ada coming soon movies dari API
+                            [
+                                {
+                                    id: 'fallback-1',
+                                    title: 'Oppenheimer',
+                                    poster_path: 'https://image.tmdb.org/t/p/original/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg',
+                                    release_date: 'July 21, 2025'
+                                },
+                                {
+                                    id: 'fallback-2',
+                                    title: 'Barbie',
+                                    poster_path: 'https://image.tmdb.org/t/p/original/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg',
+                                    release_date: 'July 21, 2025'
+                                },
+                                {
+                                    id: 'fallback-3',
+                                    title: 'Mission: Impossible',
+                                    poster_path: 'https://image.tmdb.org/t/p/original/NNxYkU70HPurnNCSiCjYAmacwm.jpg',
+                                    release_date: 'July 12, 2025'
+                                },
+                                {
+                                    id: 'fallback-4',
+                                    title: 'Meg 2: The Trench',
+                                    poster_path: 'https://image.tmdb.org/t/p/original/4HodYYKEIsGOdinkGi2Ucz6X9i0.jpg',
+                                    release_date: 'August 4, 2025'
+                                }
+                            ].map((movie) => (
+                                <div key={movie.id} className="movie-card bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover-lift">
+                                    <div className="relative pb-2/3 h-64">
+                                        <img 
+                                            src={movie.poster_path} 
+                                            alt={movie.title} 
+                                            className="absolute h-full w-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                                            <Link 
+                                                to={`/movies/${movie.id}`}
+                                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium mb-2 text-center transition-colors"
+                                            >
+                                                View Details
+                                            </Link>
+                                        </div>
+                                    </div>
+                                    <div className="p-4">
+                                        <h3 className="text-lg font-semibold text-white mb-2">{movie.title}</h3>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-400">{movie.release_date}</span>
+                                            <span className="text-xs text-indigo-400 bg-indigo-400/10 px-2 py-1 rounded-full">
+                                                Coming Soon
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </section>
 
             {/* Features Section */}
-            <section className="py-12 bg-gray-900">
+            <section id="features" className="py-16 bg-gray-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-white">
-                            Why <span className="text-indigo-400 glow-text">Choose</span> TicketGercep?
+                        <h2 className="text-4xl font-bold text-white">
+                            Why <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 glow-text">Choose</span> TicketGercep?
                         </h2>
-                        <p className="mt-4 text-lg text-gray-300 max-w-2xl mx-auto">
+                        <p className="mt-4 text-xl text-gray-300 max-w-3xl mx-auto">
                             We provide the best service for movie lovers with instant booking, great rewards, and more.
                         </p>
                     </div>
                     
                     <div className="grid md:grid-cols-3 gap-8">
-                        <div className="bg-gray-800 rounded-xl p-6 text-center">
-                            <div className="flex justify-center mb-4">
-                                <div className="w-16 h-16 rounded-full bg-indigo-600 flex items-center justify-center">
-                                    <i className="fas fa-bolt text-2xl text-white"></i>
+                        <div className="group bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 text-center hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-300 transform hover:-translate-y-2">
+                            <div className="flex justify-center mb-6">
+                                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                    <i className="fas fa-bolt text-3xl text-white"></i>
                                 </div>
                             </div>
-                            <h3 className="text-xl font-semibold text-white mb-2">Instant Booking</h3>
-                            <p className="text-gray-300">Book your tickets in seconds with our lightning-fast platform. No waiting, no hassle.</p>
+                            <h3 className="text-2xl font-semibold text-white mb-4">Instant Booking</h3>
+                            <p className="text-gray-300 text-lg">Book your tickets in seconds with our lightning-fast platform. No waiting, no hassle.</p>
                         </div>
                         
-                        <div className="bg-gray-800 rounded-xl p-6 text-center">
-                            <div className="flex justify-center mb-4">
-                                <div className="w-16 h-16 rounded-full bg-amber-500 flex items-center justify-center">
-                                    <i className="fas fa-ticket-alt text-2xl text-white"></i>
+                        <div className="group bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 text-center hover:shadow-2xl hover:shadow-amber-500/20 transition-all duration-300 transform hover:-translate-y-2">
+                            <div className="flex justify-center mb-6">
+                                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                    <i className="fas fa-ticket-alt text-3xl text-white"></i>
                                 </div>
                             </div>
-                            <h3 className="text-xl font-semibold text-white mb-2">Best Seats</h3>
-                            <p className="text-gray-300">Choose your perfect seat with our interactive seating map before anyone else.</p>
+                            <h3 className="text-2xl font-semibold text-white mb-4">Best Seats</h3>
+                            <p className="text-gray-300 text-lg">Choose your perfect seat with our interactive seating map before anyone else.</p>
                         </div>
                         
-                        <div className="bg-gray-800 rounded-xl p-6 text-center">
-                            <div className="flex justify-center mb-4">
-                                <div className="w-16 h-16 rounded-full bg-purple-600 flex items-center justify-center">
-                                    <i className="fas fa-gem text-2xl text-white"></i>
+                        <div className="group bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 text-center hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 transform hover:-translate-y-2">
+                            <div className="flex justify-center mb-6">
+                                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                    <i className="fas fa-gem text-3xl text-white"></i>
                                 </div>
                             </div>
-                            <h3 className="text-xl font-semibold text-white mb-2">VIP Rewards</h3>
-                            <p className="text-gray-300">Earn points with every purchase and unlock exclusive VIP benefits and discounts.</p>
+                            <h3 className="text-2xl font-semibold text-white mb-4">VIP Rewards</h3>
+                            <p className="text-gray-300 text-lg">Earn points with every purchase and unlock exclusive VIP benefits and discounts.</p>
                         </div>
                     </div>
                 </div>
             </section>
+
+
+            {/* Call to Action Before Footer */}
+            {!isAuthenticated && (
+                <section className="py-16 bg-gradient-to-r from-gray-900 via-indigo-900 to-purple-900 relative overflow-hidden">
+                    <div className="absolute inset-0">
+                        <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-500/10 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+                        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full translate-x-1/2 translate-y-1/2"></div>
+                    </div>
+                    <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
+                        <h2 className="text-4xl font-bold text-white mb-6">
+                            Ready to Start Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Movie Journey?</span>
+                        </h2>
+                        <p className="text-xl text-gray-300 mb-8">
+                            Join TicketGercep today and experience the easiest way to book movie tickets online.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                            <Link 
+                                to="/register" 
+                                className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                            >
+                                <i className="fas fa-user-plus mr-3"></i>
+                                Sign Up Free
+                            </Link>
+                            <Link 
+                                to="/login" 
+                                className="bg-transparent border-2 border-white hover:bg-white hover:text-gray-900 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300"
+                            >
+                                <i className="fas fa-sign-in-alt mr-3"></i>
+                                Login
+                            </Link>
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* Footer */}
             <footer className="bg-gray-900 border-t border-gray-700">

@@ -1,43 +1,45 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     });
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
             ...formData,
             [e.target.id]: e.target.value
         });
-    };
-
-    const handleSubmit = async (e) => {
+    };    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
 
         try {
-            // Mock login for demonstration
-            const mockUser = {
-                email: formData.email,
-                role: formData.email.includes('admin') ? 'admin' : 'user'
-            };
-
-            // Store user info in localStorage
-            localStorage.setItem('user', JSON.stringify(mockUser));
-
+            setLoading(true);
+            const user = await login(formData.email, formData.password);
+            
+            console.log('Logged in user:', user); // Debug log
+            
             // Redirect based on role
-            if (mockUser.role === 'admin') {
+            if (user && user.role === 'admin') {
+                console.log('Redirecting to admin dashboard'); // Debug log
                 navigate('/admin');
             } else {
-                navigate('/');
+                console.log('Redirecting to user homepage'); // Debug log
+                navigate('/'); // User ke homepage yang sudah authenticated
             }
         } catch (err) {
-            setError('Login failed. Please try again.');
+            console.error('Login error:', err); // Debug log
+            setError(err.message || 'Login failed. Please try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -92,12 +94,12 @@ const Login = () => {
                                 <a href="#forgot" className="text-sm text-indigo-400 hover:text-indigo-300">Forgot Password?</a>
                             </div>
                         </div>
-                        
-                        <button
+                          <button
                             type="submit"
-                            className="w-full bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 mb-6"
+                            disabled={loading}
+                            className="w-full bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 mb-6"
                         >
-                            Login
+                            {loading ? 'Logging in...' : 'Login'}
                         </button>
                         
                         <div className="text-center text-gray-400 text-sm">
@@ -106,12 +108,8 @@ const Login = () => {
                         </div>
                     </form>
                     
-                    {/* Demo credentials */}
-                    <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
-                        <p className="text-xs text-gray-400 mb-2">Demo credentials:</p>
-                        <p className="text-xs text-gray-300">Admin: admin@tiketgercep.com / admin123</p>
-                        <p className="text-xs text-gray-300">User: user@tiketgercep.com / user123</p>
-                    </div>
+                    {/* Demo credentials */}                    
+            
                 </div>
                 
                 <div className="px-8 py-4 bg-gray-800/50 border-t border-gray-700/50 text-center">

@@ -24,13 +24,13 @@ const UserDashboard = () => {
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
-  });
-
-  useEffect(() => {
+  });  useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
-    }    const fetchData = async () => {
+    }
+
+    const fetchData = async () => {
       try {
         setLoading(true);
         
@@ -64,11 +64,10 @@ const UserDashboard = () => {
             }
           })
         );
-        
-        setRecentBookings(enrichedBookings);
+          setRecentBookings(enrichedBookings);
         setFormData(prev => ({
           ...prev,
-          name: user.name || '',
+          name: user.full_name || user.name || '',
           email: user.email || '',
           phone: user.phone || ''
         }));
@@ -135,78 +134,91 @@ const UserDashboard = () => {
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update password');
     }
-  };
-  if (loading) {
+  };  if (loading) {
     return (
       <div className="min-h-screen bg-gray-900">
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
+        <div className="pt-20 flex items-center justify-center">
           <div className="text-center text-gray-400">Loading...</div>
         </div>
         <Footer />
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-gray-900">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-white mb-8">User Dashboard</h1>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+      <div className="pt-20"> {/* Add padding-top to avoid navbar overlap */}
+        <div className="container mx-auto px-4 py-8">
+          {/* Welcome Header */}
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-white mb-2">Welcome back, {user?.full_name || user?.name || 'User'}!</h1>
+            <p className="text-gray-400">Manage your profile and view your booking history</p>
           </div>
-        )}
 
-        {success && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            {success}
-          </div>
-        )}
+          {error && (
+            <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Information */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Profile Update Form */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
+          {success && (
+            <div className="bg-green-500/20 border border-green-500 text-green-400 px-4 py-3 rounded-lg mb-6">
+              {success}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Profile Information */}
+            <div className="lg:col-span-2 space-y-8">            {/* Profile Update Form */}
+            <div className="bg-gray-800 rounded-xl shadow-xl p-6 border border-gray-700">
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center mr-4">
+                  <i className="fas fa-user text-white"></i>
+                </div>
+                <h2 className="text-2xl font-semibold text-white">Profile Information</h2>
+              </div>
               <form onSubmit={handleProfileUpdate}>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
                     <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                      placeholder="Enter your full name"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                      placeholder="Enter your email"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
                     <input
                       type="tel"
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                      placeholder="Enter your phone number"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50"
                   >
+                    <i className="fas fa-save mr-2"></i>
                     Update Profile
                   </button>
                 </div>
@@ -214,85 +226,121 @@ const UserDashboard = () => {
             </div>
 
             {/* Password Change Form */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">Change Password</h2>
-              <form onSubmit={handlePasswordChange}>
-                <div className="space-y-4">
+            <div className="bg-gray-800 rounded-xl shadow-xl p-6 border border-gray-700">
+              <div className="flex items-center mb-6">
+                <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center mr-4">
+                  <i className="fas fa-lock text-white"></i>
+                </div>
+                <h2 className="text-2xl font-semibold text-white">Change Password</h2>
+              </div>
+              <form onSubmit={handlePasswordChange}>                <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Current Password</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
                     <input
                       type="password"
                       name="currentPassword"
                       value={formData.currentPassword}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                      placeholder="Enter current password"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">New Password</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">New Password</label>
                     <input
                       type="password"
                       name="newPassword"
                       value={formData.newPassword}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                      placeholder="Enter new password"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
                     <input
                       type="password"
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
+                      placeholder="Confirm new password"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-opacity-50"
                   >
+                    <i className="fas fa-key mr-2"></i>
                     Change Password
                   </button>
                 </div>
               </form>
             </div>
-          </div>
-
-          {/* Recent Bookings */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4">Recent Bookings</h2>
+          </div>          {/* Recent Bookings */}
+          <div className="bg-gray-800 rounded-xl shadow-xl p-6 border border-gray-700">
+            <div className="flex items-center mb-6">
+              <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mr-4">
+                <i className="fas fa-ticket-alt text-white"></i>
+              </div>
+              <h2 className="text-2xl font-semibold text-white">Recent Bookings</h2>
+            </div>
             {recentBookings.length === 0 ? (
-              <p className="text-gray-600">No recent bookings</p>
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <i className="fas fa-ticket-alt text-gray-500 text-xl"></i>
+                </div>
+                <p className="text-gray-400 text-lg mb-4">No recent bookings</p>
+                <button
+                  onClick={() => navigate('/movies')}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-[1.02]"
+                >
+                  <i className="fas fa-film mr-2"></i>
+                  Book Your First Movie
+                </button>
+              </div>
             ) : (
               <div className="space-y-4">
                 {recentBookings.map((booking) => (
-                  <div key={booking.id} className="border-b pb-4 last:border-b-0 last:pb-0">
-                    <h3 className="font-medium">{booking.movie.title}</h3>
-                    <p className="text-sm text-gray-600">
-                      {new Date(booking.showtime.startTime).toLocaleDateString()}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {booking.seats.length} seats - Rp {booking.totalAmount.toLocaleString()}
-                    </p>
-                    <button
-                      onClick={() => navigate(`/bookings/${booking.id}`)}
-                      className="text-blue-600 text-sm hover:text-blue-800"
-                    >
-                      View Details
-                    </button>
+                  <div key={booking.id} className="bg-gray-700 rounded-lg p-4 border-l-4 border-green-500 hover:bg-gray-600 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-white text-lg mb-1">{booking.movie.title}</h3>
+                        <div className="flex items-center text-gray-300 text-sm space-x-4">
+                          <span className="flex items-center">
+                            <i className="fas fa-calendar mr-1"></i>
+                            {new Date(booking.showtime.date).toLocaleDateString('id-ID')}
+                          </span>
+                          <span className="flex items-center">
+                            <i className="fas fa-clock mr-1"></i>
+                            {booking.showtime.time}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
+                          booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                          booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {booking.status}
+                        </div>
+                      </div>                    </div>
                   </div>
                 ))}
-                <button
-                  onClick={() => navigate('/bookings')}
-                  className="w-full text-blue-600 hover:text-blue-800"
-                >
-                  View All Bookings
-                </button>
-              </div>
-            )}
+                <div className="mt-6 pt-4 border-t border-gray-600">
+                  <button
+                    onClick={() => navigate('/bookings')}
+                    className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-[1.02]"
+                  >
+                    <i className="fas fa-history mr-2"></i>
+                    View All Bookings
+                  </button>
+                </div>
+              </div>)}
           </div>
         </div>
+      </div>
       </div>
       <Footer />
     </div>
