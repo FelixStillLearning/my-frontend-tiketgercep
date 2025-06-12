@@ -1,59 +1,64 @@
+// src/pages/admin/StudioFormPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminNavigation from '../../components/admin/AdminNavigation';
-import MovieForm from '../../components/admin/MovieForm';
-import MovieService from '../../services/MovieService';
+import StudioForm from '../../components/admin/StudioForm';
+import studioService from '../../services/studioService';
 
-const MovieFormPage = () => {
+const StudioFormPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [movie, setMovie] = useState(null);
+    const [studio, setStudio] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchMovie = async () => {
-            if (!id) return; // Skip if adding new movie
-
-            setLoading(true);            try {
-                const response = await MovieService.getById(id);
-                if (response && response.data) {
-                    setMovie(response.data);
+        const fetchStudio = async () => {
+            if (!id) return; // Skip if adding new studio            setLoading(true);
+            try {
+                console.log('Fetching studio with ID:', id);
+                const response = await studioService.getById(id);
+                console.log('Studio data received:', response);
+                if (response) {
+                    setStudio(response);
                 }
             } catch (err) {
-                console.error('Error fetching movie:', err);
-                setError('Failed to load movie data. Please try again.');
+                console.error('Error fetching studio:', err);
+                setError('Failed to load studio data. Please try again.');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchMovie();
+        fetchStudio();
     }, [id]);
 
     const handleSubmit = async (formData) => {
-        setLoading(true);        try {
+        setLoading(true);
+        try {
             if (id) {
-                // Update existing movie
-                await MovieService.update(id, formData);
-                alert(`Movie "${formData.title}" has been updated successfully.`);
+                // Update existing studio
+                await studioService.update(id, formData);
+                // Show success message before redirecting
+                alert(`Studio "${formData.name}" has been updated successfully.`);
             } else {
-                // Create new movie
-                await MovieService.create(formData);
-                alert(`Movie "${formData.title}" has been added successfully.`);
+                // Create new studio
+                await studioService.create(formData);
+                // Show success message before redirecting
+                alert(`Studio "${formData.name}" has been added successfully.`);
             }
-            // Redirect back to movies list
-            navigate('/admin/movies');
+            // Redirect back to studios list
+            navigate('/admin/studios');
         } catch (err) {
-            console.error('Error saving movie:', err);
-            setError('Failed to save movie data. Please try again.');
+            console.error('Error saving studio:', err);
+            setError('Failed to save studio data. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
     const handleCancel = () => {
-        navigate('/admin/movies');
+        navigate('/admin/studios');
     };
 
     return (
@@ -64,13 +69,13 @@ const MovieFormPage = () => {
                     <div className="max-w-4xl mx-auto">
                         <div className="flex justify-between items-center mb-8">
                             <h1 className="text-3xl font-bold text-gray-800">
-                                {id ? 'Edit Movie' : 'Add New Movie'}
+                                {id ? 'Edit Studio' : 'Add New Studio'}
                             </h1>
                             <button
                                 onClick={handleCancel}
                                 className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
                             >
-                                Back to Movies
+                                Back to Studios
                             </button>
                         </div>
 
@@ -85,8 +90,8 @@ const MovieFormPage = () => {
 
                         {(!loading || id === undefined) && (
                             <div className="bg-white p-6 rounded-lg shadow-lg">
-                                <MovieForm 
-                                    initialData={movie} 
+                                <StudioForm 
+                                    initialData={studio} 
                                     onSubmit={handleSubmit} 
                                     onCancel={handleCancel}
                                 />
@@ -99,4 +104,4 @@ const MovieFormPage = () => {
     );
 };
 
-export default MovieFormPage;
+export default StudioFormPage;

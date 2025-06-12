@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import StudioForm from '../../components/admin/StudioForm';
-import FormWrapper from '../../components/common/FormWrapper';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import studioService from '../../services/studioService';
 
 const StudioManager = () => {
-    const [studios, setStudios] = useState([]);
+    const navigate = useNavigate();    const [studios, setStudios] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showForm, setShowForm] = useState(false);
-    const [editingStudio, setEditingStudio] = useState(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    const [studioToDelete, setStudioToDelete] = useState(null);    useEffect(() => {
+    const [studioToDelete, setStudioToDelete] = useState(null);
+
+    useEffect(() => {
         fetchStudios();
-    }, []);    const fetchStudios = async () => {
+    }, []);
+
+    const fetchStudios = async () => {
         setLoading(true);
         try {
             const response = await studioService.getAll();
@@ -43,48 +44,17 @@ const StudioManager = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleAdd = () => {
-        setEditingStudio(null);
-        setShowForm(true);
+    };    const handleAdd = () => {
+        navigate('/admin/studios/add');
     };
 
     const handleEdit = (studio) => {
-        setEditingStudio(studio);
-        setShowForm(true);
+        navigate(`/admin/studios/edit/${studio.studio_id}`);
     };
 
     const handleDelete = (studio) => {
         setStudioToDelete(studio);
-        setShowDeleteDialog(true);
-    };    const handleFormSubmit = async (formData) => {
-        try {
-            if (editingStudio) {
-                await studioService.update(editingStudio.studio_id, formData);
-                console.log('Studio updated successfully');
-                setStudios(studios.map(studio => 
-                    studio.studio_id === editingStudio.studio_id 
-                        ? { ...studio, ...formData }
-                        : studio
-                ));
-            } else {
-                const response = await studioService.create(formData);
-                console.log('Studio created successfully');
-                const newStudio = {
-                    ...formData,
-                    studio_id: response.data?.studio_id || Date.now(),
-                    created_at: new Date().toISOString()
-                };
-                setStudios([...studios, newStudio]);
-            }
-            setShowForm(false);
-            setEditingStudio(null);
-        } catch (error) {
-            console.error('Error saving studio:', error);
-            alert('Error saving studio. Please try again.');
-        }
-    };
+        setShowDeleteDialog(true);    };
 
     const handleConfirmDelete = async () => {
         try {
@@ -95,13 +65,7 @@ const StudioManager = () => {
             setStudioToDelete(null);
         } catch (error) {
             console.error('Error deleting studio:', error);
-            alert('Error deleting studio. Please try again.');
-        }
-    };
-
-    const handleCancelForm = () => {
-        setShowForm(false);
-        setEditingStudio(null);
+            alert('Error deleting studio. Please try again.');        }
     };
 
     const handleCancelDelete = () => {
@@ -202,22 +166,7 @@ const StudioManager = () => {
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Studio Form Modal */}
-            {showForm && (
-                <FormWrapper
-                    title={editingStudio ? 'Edit Studio' : 'Add New Studio'}
-                    onClose={handleCancelForm}
-                >
-                    <StudioForm
-                        initialData={editingStudio}
-                        onSubmit={handleFormSubmit}
-                        onCancel={handleCancelForm}
-                    />
-                </FormWrapper>
-            )}
+                </div>            )}
 
             {/* Delete Confirmation Dialog */}
             {showDeleteDialog && (

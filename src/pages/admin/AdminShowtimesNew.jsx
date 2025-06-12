@@ -2,21 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminNavigation from '../../components/admin/AdminNavigation';
 import DataTable from '../../components/admin/DataTable';
-import showtimeService from '../../services/showtimeService';
+import showtimeService from '../../services/showtimeServiceNew';
 
 const AdminShowtimes = () => {
     const navigate = useNavigate();
     const [showtimes, setShowtimes] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);    useEffect(() => {
-        fetchShowtimes();
-    }, []);
+    const [error, setError] = useState(null);
 
-    const fetchShowtimes = async () => {
+    useEffect(() => {
+        fetchShowtimes();
+    }, []);    const fetchShowtimes = async () => {
         setLoading(true);
         try {
-            const response = await showtimeService.getAllShowtimes();
-            setShowtimes(response || []);
+            const response = await showtimeService.getAll();
+            if (response.success) {
+                setShowtimes(response.data || []);
+            } else {
+                throw new Error(response.error);
+            }
         } catch (error) {
             console.error('Error fetching showtimes:', error);
             setError('Failed to load showtimes. Please try again.');
@@ -53,23 +57,27 @@ const AdminShowtimes = () => {
 
     const handleEdit = (showtime) => {
         navigate(`/admin/showtimes/edit/${showtime.showtime_id}`);
-    };
-
-    const handleDelete = async (showtime) => {
+    };    const handleDelete = async (showtime) => {
         if (!window.confirm(`Are you sure you want to delete showtime for "${showtime.Movie?.title}"?`)) {
             return;
         }
         
         try {
-            await showtimeService.deleteShowtime(showtime.showtime_id);
-            // Refresh showtimes list after delete
-            fetchShowtimes();
-            alert('Showtime has been deleted successfully.');
+            const result = await showtimeService.delete(showtime.showtime_id);
+            if (result.success) {
+                // Refresh showtimes list after delete
+                fetchShowtimes();
+                alert('Showtime has been deleted successfully.');
+            } else {
+                throw new Error(result.error);
+            }
         } catch (err) {
             console.error('Error deleting showtime:', err);
             alert('Failed to delete showtime. Please try again.');
         }
-    };    const columns = [
+    };
+
+    const columns = [
         { key: 'showtime_id', label: 'ID' },
         { 
             key: 'Movie', 
@@ -92,7 +100,9 @@ const AdminShowtimes = () => {
             label: 'Price',
             render: (item) => `Rp ${item.ticket_price?.toLocaleString()}`
         },
-    ];    return (
+    ];
+
+    return (
         <div className="admin-layout">
             <AdminNavigation />
             <div className="admin-main-content">
@@ -106,8 +116,7 @@ const AdminShowtimes = () => {
                             >
                                 <i className="fas fa-plus"></i>
                                 <span>Add Showtime</span>
-                            </button>
-                        </div>
+                            </button>                        </div>
 
                         {error && (
                             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
@@ -132,4 +141,4 @@ const AdminShowtimes = () => {
     );
 };
 
-export default AdminShowtimes; 
+export default AdminShowtimes;

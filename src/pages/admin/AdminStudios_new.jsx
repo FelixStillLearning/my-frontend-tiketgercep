@@ -33,7 +33,9 @@ const AdminStudios = () => {
 
     useEffect(() => {
         fetchStudios();
-    }, []);    const columns = [
+    }, []);
+
+    const columns = [
         { key: 'name', label: 'Studio Name' },
         { key: 'capacity', label: 'Capacity' },
         { key: 'rows', label: 'Rows' },
@@ -50,6 +52,24 @@ const AdminStudios = () => {
                     {item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : ''}
                 </span>
             ),
+        },
+        {
+            key: 'facilities',
+            label: 'Facilities',
+            render: (item) => (
+                <div className="flex flex-wrap gap-1">
+                    {Array.isArray(item.facilities) && item.facilities.length > 0 ? item.facilities.map((facility, index) => (
+                        <span
+                            key={index}
+                            className="px-2 py-1 bg-blue-500/20 text-blue-500 rounded-full text-xs"
+                        >
+                            {facility}
+                        </span>
+                    )) : (
+                        <span className="text-gray-400 text-xs">No facilities</span>
+                    )}
+                </div>
+            )
         }
     ];
 

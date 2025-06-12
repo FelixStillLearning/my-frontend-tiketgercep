@@ -5,10 +5,12 @@ const StudioForm = ({
     onSubmit,
     onCancel,
 }) => {    const [formData, setFormData] = useState({
-        studio_name: '',
-        total_seats: '',
+        name: '',
+        capacity: '',
         rows: '',
         seats_per_row: '',
+        status: 'active',
+        facilities: []
     });
 
     useEffect(() => {
@@ -36,8 +38,8 @@ const StudioForm = ({
                     </label>
                     <input
                         type="text"
-                        name="studio_name"
-                        value={formData.studio_name}
+                        name="name"
+                        value={formData.name}
                         onChange={handleChange}
                         required
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -46,12 +48,11 @@ const StudioForm = ({
 
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                        Total Seats
-                    </label>
-                    <input
+                        Capacity (Total Seats)
+                    </label>                    <input
                         type="number"
-                        name="total_seats"
-                        value={formData.total_seats}
+                        name="capacity"
+                        value={formData.capacity}
                         onChange={handleChange}
                         min="1"
                         required

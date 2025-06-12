@@ -17,18 +17,21 @@ const showtimeService = {
 
   // Get all showtimes (legacy method name)
   getAllShowtimes: async () => {
-    return await showtimeService.getAll();
+    const result = await showtimeService.getAll();
+    return result.success ? result.data : [];
   },
   
   // Get showtimes by movie ID
   getByMovieId: async (movieId) => {
     try {
       const response = await api.get(`/showtimes?movie_id=${movieId}`);
-      return response.data;
+      return { success: true, data: response.data, error: null };
     } catch (error) {
-      throw error;
+      console.error('Error fetching showtimes by movie:', error);
+      return { success: false, data: [], error: error.message };
     }
   },
+
   // Get showtime by ID
   getById: async (id) => {
     try {
@@ -45,6 +48,7 @@ const showtimeService = {
     const result = await showtimeService.getById(id);
     return result.success ? result.data : null;
   },
+
   // Create new showtime
   create: async (showtimeData) => {
     try {
@@ -61,6 +65,7 @@ const showtimeService = {
     const result = await showtimeService.create(showtimeData);
     return result.success ? result.data : Promise.reject(new Error(result.error));
   },
+
   // Update showtime
   update: async (id, showtimeData) => {
     try {
@@ -69,7 +74,8 @@ const showtimeService = {
     } catch (error) {
       console.error('Error updating showtime:', error);
       return { success: false, data: null, error: error.message };
-    }  },
+    }
+  },
 
   // Update showtime (legacy method name)
   updateShowtime: async (id, showtimeData) => {
@@ -78,22 +84,30 @@ const showtimeService = {
   },
 
   // Delete showtime
-  deleteShowtime: async (id) => {
+  delete: async (id) => {
     try {
       const response = await api.delete(`/showtimes/${id}`);
-      return response.data;
+      return { success: true, data: response.data, error: null };
     } catch (error) {
-      throw error;
+      console.error('Error deleting showtime:', error);
+      return { success: false, data: null, error: error.message };
     }
+  },
+
+  // Delete showtime (legacy method name)
+  deleteShowtime: async (id) => {
+    const result = await showtimeService.delete(id);
+    return result.success ? result.data : Promise.reject(new Error(result.error));
   },
 
   // Get showtimes by movie
   getShowtimesByMovie: async (movieId) => {
     try {
       const response = await api.get(`/showtimes/movie/${movieId}`);
-      return response.data;
+      return { success: true, data: response.data, error: null };
     } catch (error) {
-      throw error;
+      console.error('Error fetching showtimes by movie:', error);
+      return { success: false, data: [], error: error.message };
     }
   },
 
@@ -101,9 +115,10 @@ const showtimeService = {
   getShowtimesByDate: async (date) => {
     try {
       const response = await api.get(`/showtimes/date/${date}`);
-      return response.data;
+      return { success: true, data: response.data, error: null };
     } catch (error) {
-      throw error;
+      console.error('Error fetching showtimes by date:', error);
+      return { success: false, data: [], error: error.message };
     }
   },
 
@@ -111,9 +126,10 @@ const showtimeService = {
   getAvailableSeats: async (showtimeId) => {
     try {
       const response = await api.get(`/showtimes/${showtimeId}/seats`);
-      return response.data;
+      return { success: true, data: response.data, error: null };
     } catch (error) {
-      throw error;
+      console.error('Error fetching available seats:', error);
+      return { success: false, data: [], error: error.message };
     }
   }
 };
