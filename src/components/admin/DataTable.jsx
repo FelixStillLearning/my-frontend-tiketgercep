@@ -67,10 +67,9 @@ const DataTable = ({
     };
 
     return (
-        <div className={`w-full ${className}`}>
-            {/* Search */}
+        <div className={`w-full ${className}`}>            {/* Search */}
             {searchable && (
-                <div className="mb-4">
+                <div className="mb-6">
                     <div className="relative">
                         <input
                             type="text"

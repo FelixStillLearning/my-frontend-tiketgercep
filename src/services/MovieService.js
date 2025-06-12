@@ -243,7 +243,6 @@ export const movieService = {
  */
 function validateMovieData(movieData, requireAll = true) {
   const requiredFields = ['title', 'genre', 'duration', 'synopsis', 'rating'];
-  const validRatings = ['G', 'PG', 'PG-13', 'R', 'NC-17'];
   const validStatuses = ['now_playing', 'coming_soon', 'ended'];
 
   // Check required fields
@@ -255,9 +254,12 @@ function validateMovieData(movieData, requireAll = true) {
     }
   }
 
-  // Validate rating
-  if (movieData.rating && !validRatings.includes(movieData.rating)) {
-    throw new Error(`Invalid rating. Must be one of: ${validRatings.join(', ')}`);
+  // Validate rating (should be a number between 0 and 5)
+  if (movieData.rating) {
+    const rating = parseFloat(movieData.rating);
+    if (isNaN(rating) || rating < 0 || rating > 5) {
+      throw new Error('Rating must be a number between 0 and 5');
+    }
   }
 
   // Validate status

@@ -1,11 +1,11 @@
 import React from 'react';
 
-const FormWrapper = ({ 
-    title, 
-    children, 
-    isOpen, 
+const FormWrapper = ({
+    title,
+    children,
+    isOpen,
     onClose,
-    maxWidth = 'max-w-4xl' 
+    maxWidth = 'max-w-4xl'
 }) => {
     if (!isOpen) return null;
 

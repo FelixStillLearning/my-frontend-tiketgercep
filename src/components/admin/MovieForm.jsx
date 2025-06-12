@@ -14,19 +14,37 @@ const MovieForm = ({
         trailer_url: '',
         status: 'coming_soon',
         rating: '',
-    });
-
-    useEffect(() => {
+    });    useEffect(() => {
         if (initialData) {
-            setFormData(initialData);
+            // Ensure date is in YYYY-MM-DD format for input
+            const formattedInitialData = {...initialData};
+            
+            if (initialData.release_date) {
+                // Convert to YYYY-MM-DD format if it's not already
+                if (typeof initialData.release_date === 'string' && !initialData.release_date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const date = new Date(initialData.release_date);
+                    if (!isNaN(date.getTime())) {
+                        formattedInitialData.release_date = date.toISOString().split('T')[0];
+                    }
+                }
+            }
+            
+            setFormData(formattedInitialData);
         }
-    }, [initialData]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+    }, [initialData]);    const handleChange = (e) => {
+        const { name, value, type } = e.target;
+        
+        // Handle different input types appropriately
+        let processedValue = value;
+        
+        if (type === 'number') {
+            // Convert to number or keep empty string
+            processedValue = value === '' ? '' : parseFloat(value);
+        }
+        
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: processedValue
         }));
     };
 

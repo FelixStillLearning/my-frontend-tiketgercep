@@ -1,29 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminNavigation from '../../components/admin/AdminNavigation';
 import DataTable from '../../components/admin/DataTable';
-import MovieForm from '../../components/admin/MovieForm';
-import Modal from '../../components/common/Modal';
 import { movieService } from '../../services/MovieService';
 
 const AdminMovies = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedMovie, setSelectedMovie] = useState(null);
+    const navigate = useNavigate();
     const [movies, setMovies] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);    const fetchMovies = async () => {
+        setLoading(true);
+        try {
+            const response = await movieService.getAll();
+            // API response: { success, data, ... }
+            setMovies(response.data || []);
+        } catch (err) {
+            console.error('Error fetching movies:', err);
+            setMovies([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchMovies = async () => {
-            setLoading(true);
-            try {
-                const response = await movieService.getAll();
-                // API response: { success, data, ... }
-                setMovies(response.data || []);
-            } catch (err) {
-                setMovies([]);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchMovies();
     }, []);
 
@@ -48,25 +46,23 @@ const AdminMovies = () => {
             ),
         },
         { key: 'release_date', label: 'Release Date' },
-    ];
-
-    const handleEdit = (movie) => {
-        setSelectedMovie(movie);
-        setIsModalOpen(true);
-    };
-
-    const handleDelete = (movie) => {
-        // Implement delete functionality
-        // Optionally: await movieService.delete(movie.movie_id)
-        console.log('Delete movie:', movie);
-    };
-
-    const handleSubmit = (formData) => {
-        // Implement submit functionality
-        // Optionally: await movieService.update(formData.movie_id, formData) or create
-        console.log('Submit movie:', formData);
-        setIsModalOpen(false);
-        setSelectedMovie(null);
+    ];    const handleEdit = (movie) => {
+        // Navigate to edit movie page with movie ID
+        navigate(`/admin/movies/edit/${movie.movie_id}`);
+    };    const handleDelete = async (movie) => {
+        if (!window.confirm(`Are you sure you want to delete "${movie.title}"?`)) {
+            return;
+        }
+        
+        try {
+            await movieService.delete(movie.movie_id);
+            // Refresh movies list after delete
+            fetchMovies();
+            alert(`Movie "${movie.title}" has been deleted successfully.`);
+        } catch (err) {
+            console.error('Error deleting movie:', err);
+            alert('Failed to delete movie. Please try again.');
+        }
     };
 
     return (
@@ -74,14 +70,10 @@ const AdminMovies = () => {
             <AdminNavigation />
             <div className="admin-main-content">
                 <div className="p-8">
-                    <div className="max-w-7xl mx-auto">
-                        <div className="flex justify-between items-center mb-8">
+                    <div className="max-w-7xl mx-auto">                        <div className="flex justify-between items-center mb-8">
                             <h1 className="text-3xl font-bold text-gray-800">Movies Management</h1>
                             <button
-                                onClick={() => {
-                                    setSelectedMovie(null);
-                                    setIsModalOpen(true);
-                                }}
+                                onClick={() => navigate('/admin/movies/add')}
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center space-x-2"
                             >
                                 <i className="fas fa-plus"></i>
@@ -98,26 +90,6 @@ const AdminMovies = () => {
                             searchable={true}
                             loading={loading}
                         />
-
-                        {/* Add/Edit Movie Modal */}
-                        <Modal
-                            isOpen={isModalOpen}
-                            onClose={() => {
-                                setIsModalOpen(false);
-                                setSelectedMovie(null);
-                            }}
-                            title={selectedMovie ? 'Edit Movie' : 'Add Movie'}
-                            size="lg"
-                        >
-                            <MovieForm
-                                initialData={selectedMovie}
-                                onSubmit={handleSubmit}
-                                onCancel={() => {
-                                    setIsModalOpen(false);
-                                    setSelectedMovie(null);
-                                }}
-                            />
-                        </Modal>
                     </div>
                 </div>
             </div>
