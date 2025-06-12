@@ -1,14 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import Modal from '../common/Modal';
 
 const AdminNavigation = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const [isCollapsed, setIsCollapsed] = useState(false);
-    const [showLogoutModal, setShowLogoutModal] = useState(false);
-
-    const menuItems = [
+    const [isCollapsed, setIsCollapsed] = useState(false);const menuItems = [
         {
             title: 'Dashboard',
             icon: 'fas fa-tachometer-alt',
@@ -33,13 +29,32 @@ const AdminNavigation = () => {
             title: 'Bookings',
             icon: 'fas fa-ticket-alt',
             path: '/admin/bookings'
+        },
+        {
+            title: 'Users',
+            icon: 'fas fa-users',
+            path: '/admin/users'
         }
-    ];
-
-    const handleLogout = () => {
-        // Clear user data and redirect
-        localStorage.removeItem('user');
-        navigate('/');
+    ];    const handleLogout = () => {
+        try {
+            // Clear all authentication data from localStorage
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            localStorage.removeItem('tiketgercep_user');
+            
+            // Redirect to homepage (not login page)
+            navigate('/');
+            
+            // Show success message
+            console.log('Admin logged out successfully');
+        } catch (error) {
+            console.error('Logout error:', error);
+            // Still clear localStorage and redirect even if logout function fails
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            localStorage.removeItem('tiketgercep_user');
+            navigate('/');
+        }
     };
 
     return (
@@ -95,44 +110,18 @@ const AdminNavigation = () => {
                             <span className={`${isCollapsed ? 'hidden' : 'block'}`}>{item.title}</span>
                         </Link>
                     ))}
-                </nav>
-
-                {/* Logout */}
+                </nav>                {/* Logout */}
                 <div className="absolute bottom-4 left-2 right-2">
                     <button
-                        onClick={() => setShowLogoutModal(true)}
+                        onClick={handleLogout}
                         className="w-full flex items-center space-x-3 p-3 rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
                         title={isCollapsed ? 'Logout' : ''}
                     >
                         <i className="fas fa-sign-out-alt w-5 text-center"></i>
                         <span className={`${isCollapsed ? 'hidden' : 'block'}`}>Logout</span>
-                    </button>                </div>
-            </div>
-
-            <Modal
-                isOpen={showLogoutModal}
-                onClose={() => setShowLogoutModal(false)}
-                title="Confirm Logout"
-                size="sm"
-            >
-                <div className="p-4">
-                    <p className="text-gray-300 mb-6">Are you sure you want to logout?</p>
-                    <div className="flex justify-end space-x-3">
-                        <button 
-                            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                            onClick={() => setShowLogoutModal(false)}
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                            onClick={handleLogout}
-                        >
-                            Logout
-                        </button>
-                    </div>
+                    </button>
                 </div>
-            </Modal>
+            </div>
         </>
     );
 };

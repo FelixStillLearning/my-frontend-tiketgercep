@@ -67,8 +67,7 @@ const DataTable = ({
     };
 
     return (
-        <div className={`w-full ${className}`}>            {/* Search */}
-            {searchable && (
+        <div className={`w-full ${className}`}>            {/* Search */}            {searchable && (
                 <div className="mb-6">
                     <div className="relative">
                         <input
@@ -76,9 +75,9 @@ const DataTable = ({
                             placeholder="Search..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full px-4 py-2 pl-10 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-4 py-2 pl-25 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
-                        <i className="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        <i className="fas fa-search absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                     </div>
                 </div>
             )}

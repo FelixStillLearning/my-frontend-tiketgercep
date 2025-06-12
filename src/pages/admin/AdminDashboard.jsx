@@ -4,6 +4,7 @@ import AdminCard from '../../components/admin/AdminCard';
 import DataTable from '../../components/admin/DataTable';
 import bookingService from '../../services/bookingService';
 import { movieService } from '../../services/MovieService';
+import userService from '../../services/userService';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState([
@@ -41,33 +42,51 @@ const AdminDashboard = () => {
         },
     ]);
     const [recentBookings, setRecentBookings] = useState([]);
-    const [loading, setLoading] = useState(true);    // Fetch data dari API saat component mount
+    const [loading, setLoading] = useState(true);
+
+    // Fetch data dari API saat component mount
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
                 setLoading(true);
                 console.log('Fetching dashboard data...');
                 
-                // Fetch bookings dan movies secara parallel
-                const [bookingsResponse, moviesResponse] = await Promise.all([
-                    bookingService.getAllBookings(),
-                    movieService.getAll()
+                // Fetch data dari semua endpoint
+                const [bookingsResponse, moviesResponse, usersResponse] = await Promise.all([
+                    bookingService.getAllBookings().catch(err => {
+                        console.error('Error fetching bookings:', err);
+                        return [];
+                    }),
+                    movieService.getAll().catch(err => {
+                        console.error('Error fetching movies:', err);
+                        return { success: false, data: [] };
+                    }),
+                    userService.getAllUsers().catch(err => {
+                        console.error('Error fetching users:', err);
+                        return [];
+                    })
                 ]);
                 
                 console.log('Bookings response:', bookingsResponse);
                 console.log('Movies response:', moviesResponse);
+                console.log('Users response:', usersResponse);
+
+                // Handle format response yang berbeda
+                const bookings = Array.isArray(bookingsResponse) ? bookingsResponse : [];
+                const movies = moviesResponse.success ? moviesResponse.data : 
+                              Array.isArray(moviesResponse) ? moviesResponse : [];
+                const users = Array.isArray(usersResponse) ? usersResponse : [];
 
                 // Update stats dengan data real
-                const totalBookings = bookingsResponse.length || 0;
-                const totalMovies = moviesResponse.length || 0;
+                const totalBookings = bookings.length || 0;
+                const totalMovies = movies.length || 0;
+                const totalUsers = users.length || 0;
                 
                 // Hitung total revenue dari bookings
-                const totalRevenue = bookingsResponse.reduce((sum, booking) => {
-                    // Asumsikan ada field total_amount atau harga_tiket
-                    const amount = booking.total_amount || booking.harga_tiket || 0;
-                    return sum + (typeof amount === 'string' ? parseInt(amount.replace(/\D/g, '')) : amount);
+                const totalRevenue = bookings.reduce((sum, booking) => {
+                    const amount = booking.total_price || booking.total_amount || booking.harga_tiket || 0;
+                    return sum + (typeof amount === 'string' ? parseInt(amount.replace(/\D/g, '')) || 0 : amount || 0);
                 }, 0);
-
 
                 setStats(prevStats => prevStats.map(stat => {
                     if (stat.title === 'Total Movies') {
@@ -77,23 +96,30 @@ const AdminDashboard = () => {
                         return { ...stat, value: totalBookings.toString() };
                     }
                     if (stat.title === 'Total Revenue') {
-                        return { ...stat, value: `Rp ${totalRevenue.toLocaleString()}` };
+                        return { ...stat, value: `Rp ${totalRevenue.toLocaleString('id-ID')}` };
                     }
-                    // Tambahkan logika untuk 'Active Users' jika datanya tersedia
+                    if (stat.title === 'Active Users') {
+                        return { ...stat, value: totalUsers.toString() };
+                    }
                     return stat;
                 }));
 
-                // Ambil 10 booking terbaru dan format data untuk table
-                const formattedBookings = bookingsResponse
+                // Format booking data untuk table
+                const formattedBookings = bookings
                     .slice(0, 10)
                     .map(booking => ({
-                        id: booking.id,
-                        movie: booking.Movie?.title || booking.movie_title || 'Unknown Movie',
-                        customer: booking.User?.username || booking.customer_name || 'Unknown Customer',
-                        seats: booking.BookingSeats?.map(seat => seat.Seat?.seat_number).join(', ') || booking.seats || 'N/A',
-                        amount: `Rp ${(booking.total_amount || booking.harga_tiket || 0).toLocaleString()}`,
+                        id: booking.booking_id || booking.id,
+                        movie: booking.Showtime?.Movie?.title || booking.movie_title || 'Unknown Movie',
+                        customer: booking.User?.username || booking.User?.full_name || booking.customer_name || 'Unknown Customer',
+                        seats: booking.BookingSeats?.map(bs => bs.Seat?.seat_label || bs.Seat?.seat_number).join(', ') || 
+                               booking.total_seats + ' seats' || 'N/A',
+                        amount: `Rp ${(booking.total_price || booking.total_amount || booking.harga_tiket || 0).toLocaleString('id-ID')}`,
                         status: booking.status || 'pending',
-                        date: new Date(booking.createdAt || booking.tanggal_booking).toISOString().split('T')[0],
+                        date: booking.booking_date ? 
+                              new Date(booking.booking_date).toLocaleDateString('id-ID') :
+                              booking.createdAt ? 
+                              new Date(booking.createdAt).toLocaleDateString('id-ID') :
+                              'Unknown',
                     }));
 
                 setRecentBookings(formattedBookings);
@@ -104,7 +130,9 @@ const AdminDashboard = () => {
             } finally {
                 setLoading(false);
             }
-        };        fetchDashboardData();
+        };
+
+        fetchDashboardData();
     }, []);
 
     const bookingColumns = [        { key: 'movie', label: 'Movie', accessor: 'movie' },

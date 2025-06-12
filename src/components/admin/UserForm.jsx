@@ -14,9 +14,18 @@ const UserForm = ({
         role: 'user',
     });
 
+    const [showPassword, setShowPassword] = useState(false);
+
     useEffect(() => {
         if (initialData) {
-            setFormData(initialData);
+            setFormData({
+                username: initialData.username || '',
+                email: initialData.email || '',
+                password: '', // Don't pre-fill password for security
+                full_name: initialData.full_name || '',
+                phone: initialData.phone || '',
+                role: initialData.role || 'user',
+            });
         }
     }, [initialData]);
 
@@ -30,15 +39,21 @@ const UserForm = ({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit(formData);
+        
+        // For edit mode, only include password if it's not empty
+        const submitData = { ...formData };
+        if (initialData && !submitData.password) {
+            delete submitData.password;
+        }
+        
+        onSubmit(submitData);
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">                <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                        Username
+                        Username *
                     </label>
                     <input
                         type="text"
@@ -46,13 +61,14 @@ const UserForm = ({
                         value={formData.username}
                         onChange={handleChange}
                         required
+                        placeholder="Enter username"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
 
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                        Email
+                        Email *
                     </label>
                     <input
                         type="email"
@@ -60,28 +76,42 @@ const UserForm = ({
                         value={formData.email}
                         onChange={handleChange}
                         required
+                        placeholder="Enter email address"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
 
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                        Password
+                        Password {!initialData && '*'}
+                        {initialData && (
+                            <span className="text-gray-500 text-xs ml-1">(leave empty to keep current)</span>
+                        )}
                     </label>
-                    <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                        minLength="6"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
+                    <div className="relative">
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required={!initialData}
+                            placeholder={initialData ? "Enter new password (optional)" : "Enter password"}
+                            minLength="6"
+                            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        >
+                            <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} text-gray-400 hover:text-gray-600`}></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                        Full Name
+                        Full Name *
                     </label>
                     <input
                         type="text"
@@ -89,27 +119,26 @@ const UserForm = ({
                         value={formData.full_name}
                         onChange={handleChange}
                         required
+                        placeholder="Enter full name"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
-                </div>
-
-                <div className="space-y-2">
+                </div>                <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                        Phone Number
+                        Phone
                     </label>
                     <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        placeholder="08123456789"
+                        placeholder="Enter phone number (e.g., 08123456789)"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
 
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
-                        Role
+                        Role *
                     </label>
                     <select
                         name="role"

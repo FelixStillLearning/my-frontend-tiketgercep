@@ -15,6 +15,7 @@ import UserDashboard from './pages/user/UserDashboard';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
+// Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminMovies from './pages/admin/AdminMovies';
 import MovieFormPage from './pages/admin/MovieFormPage';
@@ -24,13 +25,8 @@ import AdminShowtimes from './pages/admin/AdminShowtimesNew';
 import ShowtimeFormPage from './pages/admin/ShowtimeFormPage';
 import AdminBookings from './pages/admin/AdminBookings';
 import BookingFormPage from './pages/admin/BookingFormPage';
-import BookingManager from './pages/admin/BookingManagerNew';
-import MovieManager from './pages/admin/MovieManager';
-import StudioManager from './pages/admin/StudioManager';
-import ShowtimeManager from './pages/admin/ShowtimeManager';
-import UserManager from './pages/admin/UserManager';
-import SeatManager from './pages/admin/SeatManager';
-import BookingSeatManager from './pages/admin/BookingSeatManager';
+import AdminUsersSimple from './pages/admin/AdminUsersSimple';
+import UserFormPageSimple from './pages/admin/UserFormPageSimple';
 
 function App() {
     return (
@@ -44,29 +40,20 @@ function App() {
                         <Route path="/movies/:id" element={<MovieDetail />} />
                         <Route path="/booking/:showtimeId" element={<BookingPage />} />
                         <Route path="/bookings" element={<BookingHistory />} />
-                        <Route path="/dashboard" element={<UserDashboard />} />                        
-                        {/* Admin Routes - using simple components first */}
+                        <Route path="/dashboard" element={<UserDashboard />} />                          {/* Admin Routes */}
                         <Route path="/admin" element={<AdminDashboard />} />
                         <Route path="/admin/movies" element={<AdminMovies />} />                        
                         <Route path="/admin/movies/add" element={<MovieFormPage />} />
                         <Route path="/admin/movies/edit/:id" element={<MovieFormPage />} />
                         <Route path="/admin/studios" element={<AdminStudios />} />                        
                         <Route path="/admin/studios/add" element={<StudioFormPage />} />
-                        <Route path="/admin/studios/edit/:id" element={<StudioFormPage />} />                        <Route path="/admin/showtimes" element={<AdminShowtimes />} />
+                        <Route path="/admin/studios/edit/:id" element={<StudioFormPage />} />                        
+                        <Route path="/admin/showtimes" element={<AdminShowtimes />} />
                         <Route path="/admin/showtimes/add" element={<ShowtimeFormPage />} />
-                        <Route path="/admin/showtimes/edit/:id" element={<ShowtimeFormPage />} />
-                        <Route path="/admin/bookings" element={<AdminBookings />} />
+                        <Route path="/admin/showtimes/edit/:id" element={<ShowtimeFormPage />} />                          <Route path="/admin/bookings" element={<AdminBookings />} />
                         <Route path="/admin/bookings/add" element={<BookingFormPage />} />
-                        <Route path="/admin/bookings/edit/:id" element={<BookingFormPage />} />
-                        <Route path="/admin/bookings/manage" element={<BookingManager />} />
-                        
-                        {/* New Admin Manager Routes with CRUD */}
-                        <Route path="/admin/manage/movies" element={<MovieManager />} />
-                        <Route path="/admin/manage/studios" element={<StudioManager />} />
-                        <Route path="/admin/manage/showtimes" element={<ShowtimeManager />} />
-                        <Route path="/admin/manage/users" element={<UserManager />} />
-                        <Route path="/admin/manage/seats" element={<SeatManager />} />
-                        <Route path="/admin/manage/booking-seats" element={<BookingSeatManager />} />
+                        <Route path="/admin/bookings/edit/:id" element={<BookingFormPage />} />                        <Route path="/admin/users" element={<AdminUsersSimple />} />                        <Route path="/admin/users/add" element={<UserFormPageSimple />} />
+                        <Route path="/admin/users/edit/:id" element={<UserFormPageSimple />} />
 
                         {/* Auth Routes */}
                         <Route path="/login" element={<Login />} />
