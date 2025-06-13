@@ -8,10 +8,12 @@ import Footer from '../../components/common/Footer';
 import Button from '../../components/common/Button';
 import { movieService } from '../../services/MovieService';
 import showtimeService from '../../services/showtimeService';
+import { useAuth } from '../../contexts/AuthContext';
 
 const MovieDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user, isAuthenticated } = useAuth();
     const [movie, setMovie] = useState(null);
     const [showtimes, setShowtimes] = useState([]);
     const [selectedDate, setSelectedDate] = useState('');
@@ -119,12 +121,33 @@ const MovieDetail = () => {
         setSelectedDate(date);
         setSelectedShowtime(null);
     };    const handleShowtimeSelect = (showtime) => {
+        if (!isAuthenticated) {
+            // Jika belum login, arahkan ke halaman login dengan redirect
+            navigate('/login', { 
+                state: { 
+                    from: `/movies/${id}`,
+                    message: 'Please login to select showtime and book tickets'
+                } 
+            });
+            return;
+        }
         setSelectedShowtime(showtime);
     };
 
     const handleBooking = () => {
+        if (!isAuthenticated) {
+            // Jika belum login, arahkan ke halaman login dengan redirect
+            navigate('/login', { 
+                state: { 
+                    from: `/movies/${id}`,
+                    message: 'Please login to book tickets'
+                } 
+            });
+            return;
+        }
+        
         if (selectedShowtime) {
-            navigate(`/booking/${id}/${selectedShowtime.id}`);
+            navigate(`/booking/${selectedShowtime.id}`);
         }
     };
 
@@ -253,7 +276,7 @@ const MovieDetail = () => {
             </div>
 
             {/* Showtimes */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-8">
                 <h2 className="text-2xl font-bold text-white mb-6">Select Showtime</h2>
                 
                 {/* Date Selection */}
@@ -313,10 +336,35 @@ const MovieDetail = () => {
                             variant="primary"
                             size="lg"
                             onClick={handleBooking}
-                            disabled={!selectedShowtime}
+                            disabled={!selectedShowtime && isAuthenticated}
                         >
-                            {selectedShowtime ? 'Book Tickets' : 'Select a Showtime'}
+                            {!isAuthenticated 
+                                ? 'Login to Book Tickets' 
+                                : selectedShowtime 
+                                    ? 'Book Tickets' 
+                                    : 'Select a Showtime'
+                            }
                         </Button>
+                        
+                        {!isAuthenticated && (
+                            <div className="ml-4 flex items-center">
+                                <p className="text-sm text-gray-400">
+                                    Please{' '}
+                                    <button 
+                                        onClick={() => navigate('/login', { 
+                                            state: { 
+                                                from: `/movies/${id}`,
+                                                message: 'Please login to book tickets'
+                                            } 
+                                        })}
+                                        className="text-indigo-400 hover:text-indigo-300 underline"
+                                    >
+                                        login
+                                    </button>
+                                    {' '}to select showtime and book tickets
+                                </p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

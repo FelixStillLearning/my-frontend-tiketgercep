@@ -46,9 +46,6 @@ const HomePage = () => {
                     description: movie.synopsis
                 }));
                 
-                // Debug: Log movie IDs to console
-                console.log('Now Playing Movies:', nowPlayingData.map(m => ({ id: m.id, title: m.title })));
-                
                 // Map Coming Soon movies
                 const comingSoonData = comingSoonResponse.success ? comingSoonResponse.data.map(movie => ({
                     id: movie.movie_id,
@@ -310,7 +307,6 @@ const HomePage = () => {
                                                     <Link 
                                                         to={`/movies/${movie.id}`}
                                                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-sm font-medium inline-flex items-center transition-colors"
-                                                        onClick={() => console.log('Navigating to movie ID:', movie.id, 'Title:', movie.title)}
                                                     >
                                                         <i className="fas fa-play mr-2"></i>
                                                         Book Tickets

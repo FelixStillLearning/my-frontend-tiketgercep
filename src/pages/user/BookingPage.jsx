@@ -35,10 +35,31 @@ const BookingPage = () => {
         // Fetch showtime details
         const showtimeData = await showtimeService.getShowtimeById(showtimeId);
         setShowtime(showtimeData);
+          // Fetch movie details
+        const movieResponse = await movieService.getById(showtimeData.movie_id);
+        console.log('MovieService response in BookingPage:', movieResponse);
         
-        // Fetch movie details
-        const movieData = await movieService.getById(showtimeData.movie_id);
-        setMovie(movieData);
+        // Check if API call was successful
+        if (!movieResponse.success) {
+            throw new Error(movieResponse.error || 'Failed to fetch movie data');
+        }
+        
+        const movieData = movieResponse.data;
+        console.log('Extracted movie data in BookingPage:', movieData);
+        
+        // Format movie data sesuai dengan response database
+        const formattedMovie = {
+            movie_id: movieData.movie_id,
+            title: movieData.title || 'Unknown Title',
+            poster_url: movieData.poster_url || 'https://via.placeholder.com/300x450/444444/ffffff?text=No+Image+Available',
+            rating: movieData.rating || 'Not Rated',
+            genre: movieData.genre || 'Unknown Genre',
+            duration: movieData.duration ? `${movieData.duration} minutes` : 'Unknown Duration',
+            release_date: movieData.release_date || 'Unknown Release Date',
+            overview: movieData.overview || 'No overview available'
+        };
+        
+        setMovie(formattedMovie);
         
         // Fetch studio details
         const studioData = await studioService.getStudioById(showtimeData.studio_id);
@@ -81,12 +102,11 @@ const BookingPage = () => {
 
     try {
       setLoading(true);
-      
-      // Convert seat IDs to actual seat records for booking
+        // Convert seat IDs to actual seat records for booking
       const selectedSeatRecords = selectedSeats.map(seatId => {
         const [row, seatNum] = seatId.split('-');
         return studioSeats.find(seat => 
-          seat.seat_row === parseInt(row) && seat.seat_number === parseInt(seatNum)
+          seat.seat_row === row && seat.seat_number === parseInt(seatNum)
         );
       }).filter(Boolean);
 
@@ -109,71 +129,72 @@ const BookingPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-  if (loading) {
+  };  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-gray-900 flex flex-col">
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center text-gray-400">Loading booking data...</div>
+        <div className="flex-1 pt-20 pb-4">
+          <div className="container mx-auto px-4 h-full flex items-center justify-center">
+            <div className="text-center text-gray-400">Loading booking data...</div>
+          </div>
         </div>
         <Footer />
       </div>
-    );
-  }
+    );  }
 
   if (error || !showtime || !movie) {
     return (
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-gray-900 flex flex-col">
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center text-red-400">{error || 'Booking data not found'}</div>
+        <div className="flex-1 pt-20 pb-4">
+          <div className="container mx-auto px-4 h-full flex items-center justify-center">
+            <div className="text-center text-red-400">{error || 'Booking data not found'}</div>
+          </div>
         </div>
         <Footer />
       </div>
     );
   }
 
-  // Calculate studio layout from seat data
-  const maxRow = Math.max(...studioSeats.map(seat => seat.seat_row));
-  const maxSeatNumber = Math.max(...studioSeats.map(seat => seat.seat_number));
-
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-900 flex flex-col">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Seat Selection */}
-          <div className="bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold text-white mb-6">Select Seats</h2>
-            <SeatMap
-              rows={maxRow + 1}
-              seatsPerRow={maxSeatNumber + 1}
-              bookedSeats={bookedSeats}
-              onSeatSelect={handleSeatSelect}
-              selectedSeats={selectedSeats}
-            />
-          </div>
+      <div className="flex-1 pt-20 pb-4">
+        <div className="container mx-auto px-4 h-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+            {/* Seat Selection */}
+            <div className="bg-gray-800 rounded-lg shadow-md p-4 lg:p-6 flex flex-col">
+              <h2 className="text-xl lg:text-2xl font-bold text-white mb-4 lg:mb-6">Select Seats</h2>
+              <div className="flex-1 flex items-center justify-center">
+                <SeatMap
+                  studioSeats={studioSeats}
+                  bookedSeats={bookedSeats}
+                  onSeatSelect={handleSeatSelect}
+                  selectedSeats={selectedSeats}
+                />
+              </div>
+            </div>
 
-          {/* Booking Summary */}
-          <div className="bg-gray-800 rounded-lg shadow-md p-6">
-            <BookingSummary
-              movie={{
-                title: movie.title,
-                genre: movie.genre,
-                duration: movie.duration,
-                posterUrl: movie.poster_url || 'https://via.placeholder.com/300x450?text=No+Image'
-              }}
-              showtime={{
-                date: showtime.show_date,
-                startTime: showtime.show_time,
-                studioName: studio ? studio.name : `Studio ${showtime.studio_id}`
-              }}
-              selectedSeats={selectedSeats}
-              pricePerSeat={parseFloat(showtime.ticket_price)}
-              onConfirm={handleBooking}
-              onCancel={() => navigate(`/movies/${movie.movie_id}`)}
-            />
+            {/* Booking Summary */}
+            <div className="bg-gray-800 rounded-lg shadow-md p-4 lg:p-6">
+              <BookingSummary
+                movie={{
+                  title: movie.title,
+                  genre: movie.genre,
+                  duration: movie.duration,
+                  posterUrl: movie.poster_url || 'https://via.placeholder.com/300x450?text=No+Image'
+                }}
+                showtime={{
+                  date: showtime.show_date,
+                  startTime: showtime.show_time,
+                  studioName: studio ? studio.name : `Studio ${showtime.studio_id}`
+                }}
+                selectedSeats={selectedSeats}
+                pricePerSeat={parseFloat(showtime.ticket_price)}
+                onConfirm={handleBooking}
+                onCancel={() => navigate(`/movies/${movie.movie_id}`)}
+              />
+            </div>
           </div>
         </div>
       </div>

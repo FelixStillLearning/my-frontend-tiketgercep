@@ -93,23 +93,21 @@ const BookingHistory = () => {
       default:
         return 'bg-gray-100 text-gray-800';
     }
-  };
-  if (loading) {
+  };  if (loading) {
     return (
       <div className="min-h-screen bg-gray-900">
         <Navbar />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 pt-20 pb-8">
           <div className="text-center text-gray-400">Loading booking history...</div>
         </div>
         <Footer />
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-900">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-20 pb-8">
         <h1 className="text-3xl font-bold text-white mb-8">Booking History</h1>
 
         {error && (

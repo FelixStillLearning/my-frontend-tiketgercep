@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { login } = useAuth();
     const [formData, setFormData] = useState({
         email: '',
@@ -27,10 +28,22 @@ const Login = () => {
             
             console.log('Logged in user:', user); // Debug log
             
-            // Redirect based on role
+            // Check if there's a redirect location from the state
+            const redirectTo = location.state?.from;
+            const message = location.state?.message;
+            
+            // Show message if provided
+            if (message) {
+                console.log('Login redirect message:', message);
+            }
+            
+            // Redirect based on role and redirect state
             if (user && user.role === 'admin') {
                 console.log('Redirecting to admin dashboard'); // Debug log
                 navigate('/admin');
+            } else if (redirectTo) {
+                console.log('Redirecting to:', redirectTo); // Debug log
+                navigate(redirectTo);
             } else {
                 console.log('Redirecting to user homepage'); // Debug log
                 navigate('/'); // User ke homepage yang sudah authenticated
@@ -53,10 +66,11 @@ const Login = () => {
             
             {/* Login Form */}
             <div className="w-full max-w-md z-10 bg-gray-900/80 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden border border-gray-700/50">
-                <div className="p-8">
-                    <div className="text-center mb-8">
+                <div className="p-8">                    <div className="text-center mb-8">
                         <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-                        <p className="text-gray-400">Login to your TicketGercep account</p>
+                        <p className="text-gray-400">
+                            {location.state?.message || 'Login to your TicketGercep account'}
+                        </p>
                     </div>
                     
                     {error && (

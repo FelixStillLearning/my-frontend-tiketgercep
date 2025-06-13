@@ -29,6 +29,7 @@ import AdminBookings from './pages/admin/AdminBookings';
 import BookingFormPage from './pages/admin/BookingFormPage';
 import AdminUsersSimple from './pages/admin/AdminUsersSimple';
 import UserFormPageSimple from './pages/admin/UserFormPageSimple';
+import BookingDetail from './pages/user/BookingDetailNew';
 
 function App() {
     return (
@@ -39,8 +40,8 @@ function App() {
                         {/* User Routes */}
                         <Route path="/" element={<HomePage />} />
                         <Route path="/movies" element={<MovieList />} />
-                        <Route path="/movies/:id" element={<MovieDetail />} />
-                        <Route path="/booking/:showtimeId" element={<BookingPage />} />                        <Route path="/bookings" element={<ProtectedUserRoute><BookingHistory /></ProtectedUserRoute>} />
+                        <Route path="/movies/:id" element={<MovieDetail />} />                        <Route path="/booking/:showtimeId" element={<BookingPage />} />                        <Route path="/bookings" element={<ProtectedUserRoute><BookingHistory /></ProtectedUserRoute>} />
+                        <Route path="/bookings/:id" element={<ProtectedUserRoute><BookingDetail /></ProtectedUserRoute>} />
                         <Route path="/dashboard" element={<ProtectedUserRoute><UserDashboard /></ProtectedUserRoute>} />
 
                         {/* Admin Routes */}

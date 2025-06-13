@@ -1,40 +1,51 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 const SeatMap = ({
-    rows = 8,
-    seatsPerRow = 10,
+    studioSeats = [], // New prop: actual seat data from database
     bookedSeats = [],
     onSeatSelect,
+    selectedSeats = [],
     className = '',
 }) => {
-    const [selectedSeats, setSelectedSeats] = useState([]);
-
-    const handleSeatClick = (row, seat) => {
-        const seatId = `${row}-${seat}`;
+    
+    const handleSeatClick = (seatRow, seatNumber) => {
+        const seatId = `${seatRow}-${seatNumber}`;
         const isBooked = bookedSeats.includes(seatId);
         
         if (isBooked) return;
 
-        setSelectedSeats(prev => {
-            const newSelected = prev.includes(seatId)
-                ? prev.filter(id => id !== seatId)
-                : [...prev, seatId];
-            
-            onSeatSelect(newSelected);
-            return newSelected;
-        });
+        const newSelected = selectedSeats.includes(seatId)
+            ? selectedSeats.filter(id => id !== seatId)
+            : [...selectedSeats, seatId];
+        
+        onSeatSelect(newSelected);
     };
 
-    const getSeatStatus = (row, seat) => {
-        const seatId = `${row}-${seat}`;
+    const getSeatStatus = (seatRow, seatNumber) => {
+        const seatId = `${seatRow}-${seatNumber}`;
         if (bookedSeats.includes(seatId)) return 'booked';
         if (selectedSeats.includes(seatId)) return 'selected';
         return 'available';
     };
 
-    const renderSeat = (row, seat) => {
-        const status = getSeatStatus(row, seat);
-        const seatId = `${row}-${seat}`;
+    // Group seats by row
+    const seatsByRow = studioSeats.reduce((acc, seat) => {
+        if (!acc[seat.seat_row]) {
+            acc[seat.seat_row] = [];
+        }
+        acc[seat.seat_row].push(seat);
+        return acc;
+    }, {});
+
+    // Sort rows alphabetically and seats by number
+    const sortedRows = Object.keys(seatsByRow).sort();
+    Object.keys(seatsByRow).forEach(row => {
+        seatsByRow[row].sort((a, b) => a.seat_number - b.seat_number);
+    });
+
+    const renderSeat = (seat) => {
+        const status = getSeatStatus(seat.seat_row, seat.seat_number);
+        const seatId = `${seat.seat_row}-${seat.seat_number}`;
 
         const statusClasses = {
             available: 'bg-gray-700 hover:bg-gray-600 cursor-pointer',
@@ -45,17 +56,29 @@ const SeatMap = ({
         return (
             <button
                 key={seatId}
-                onClick={() => handleSeatClick(row, seat)}
+                onClick={() => handleSeatClick(seat.seat_row, seat.seat_number)}
                 disabled={status === 'booked'}
                 className={`
                     w-8 h-8 rounded-t-lg m-1
                     ${statusClasses[status]}
-                    transition-colors
+                    transition-colors text-xs text-white font-bold
                 `}
-                title={`Seat ${String.fromCharCode(65 + row)}${seat + 1}`}
-            />
+                title={`Seat ${seat.seat_label}`}
+            >
+                {seat.seat_number}
+            </button>
         );
     };
+
+    if (studioSeats.length === 0) {
+        return (
+            <div className={`bg-gray-800 rounded-lg p-6 ${className}`}>
+                <div className="text-center text-gray-400">
+                    No seats available for this studio.
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={`bg-gray-800 rounded-lg p-6 ${className}`}>
@@ -66,9 +89,16 @@ const SeatMap = ({
 
             {/* Seats */}
             <div className="flex flex-col items-center">
-                {Array.from({ length: rows }, (_, row) => (
-                    <div key={row} className="flex">
-                        {Array.from({ length: seatsPerRow }, (_, seat) => renderSeat(row, seat))}
+                {sortedRows.map(row => (
+                    <div key={row} className="flex items-center mb-2">
+                        {/* Row label */}
+                        <div className="w-8 text-center text-gray-400 font-bold mr-4">
+                            {row}
+                        </div>
+                        {/* Seats in this row */}
+                        <div className="flex">
+                            {seatsByRow[row].map(seat => renderSeat(seat))}
+                        </div>
                     </div>
                 ))}
             </div>
